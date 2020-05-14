@@ -2,9 +2,8 @@
 
 const fs    = require( 'fs' ),
       util  = require( 'util' ),
-      { COPYFILE_EXCL } = fs.constants,
       path  = require( 'path' ),
-      {log, exists} = require( 'maintenance' ),
+      { log, exists } = require( 'maintenance' ),
       ModuleError = require( 'module-error' ),
       copyFile = util.promisify( fs.copyFile ),
       unlink = util.promisify( fs.unlink ),
@@ -197,8 +196,10 @@ async function copyPath( opts = {}) {
          };
          break;
       };
-      case fromIsDir && ! toExists && ! toHasLastSlash:
-      case fromIsDir && ! toExists && toHasLastSlash:
+      case fromIsDir && ! toExists:
+
+         await mkdir( to, { recursive: true });
+         await copyPath( opts );
       }
    }
    catch( e ) {
