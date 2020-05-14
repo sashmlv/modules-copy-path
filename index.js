@@ -13,24 +13,27 @@ const fs    = require( 'fs' ),
       lstat = util.promisify( fs.lstat );
 
 /**
- * Copy path, with optional content translate
- * TODO: content transform in file
+ * Copy path
+ * TODO: complete filter
+ * TODO: content transform
+ * TODO: from and dist not absolute path
+ * TODO: log and dry
  * @param {string} from
  * @param {string} to
- * @param {regex|function} filter - filter for copying paths
+ * @param {regex|array|function} filter - filter for copying paths
  * @param {boolean} force - overwrite files
  * @param {boolean} log
  * @param {boolean} dry - do not copy files (for testing)
  * @return {undefined} Return removed paths
  **/
-async function copyPath( opts = {}) {
+async function copyPath( opts = {}){
 
    try {
 
       const { from, to, filter, force, silent, log, dry, } = opts;
 
       /* check params */
-      switch ( true ) {
+      switch ( true ){
 
       case ! from:
 
@@ -47,6 +50,30 @@ async function copyPath( opts = {}) {
       case typeof to !== 'string':
 
          throw new ModuleError({ message: `Parameter 'to' must to be a string, provided: ${ typeof to }`, code: 'NOT_VALID_TO', });
+
+      case filter instanceof RegExp:
+
+         if( ! filter.test( from )){
+
+            return;
+         }
+         break;
+
+      case Array.isArray( filter ):
+
+         if( ! filter.find( f => f.test( from ))){
+
+            return;
+         };
+         break;
+
+      case typeof filter === 'function':
+
+         if( ! filter( from )){
+
+            return;
+         }
+         break;
       }
 
       let fromExists = await exists( from ),
@@ -57,14 +84,14 @@ async function copyPath( opts = {}) {
           toIsFile,
           toHasLastSlash = ( typeof to === 'string' ) && ( to.slice( -1 ) === '/' );
 
-      if( fromExists ) {
+      if( fromExists ){
 
          const fromStat = await lstat( from );
          fromIsDir  = fromStat.isDirectory();
          fromIsFile = fromStat.isFile();
       }
 
-      if( toExists ) {
+      if( toExists ){
 
          const toStat = await lstat( to );
          toIsDir  = toStat.isDirectory();
@@ -72,7 +99,7 @@ async function copyPath( opts = {}) {
       }
 
       /* module logic */
-      switch ( true ) {
+      switch ( true ){
 
       case ! fromExists:
 
@@ -150,7 +177,7 @@ async function copyPath( opts = {}) {
          const paths = ( await readdir( from ))
                .map( v => path.resolve( `${ from }/${ v }` ));
 
-         for( let i = 0; i < paths.length; i++ ) {
+         for( let i = 0; i < paths.length; i++ ){
 
             await copyPath( Object.assign({}, opts, {
 
@@ -167,32 +194,18 @@ async function copyPath( opts = {}) {
          /* copy each path separately */
          for( let i = 0; i < paths.length; i++ ){
 
-            const pathStat = await lstat( paths[ i ]);
+            const pathStat = await lstat( paths[ i ]),
+                  toPath = pathStat.isDirectory() ?
 
-            if( pathStat.isDirectory()){
+                  /* for directory source add slash at end */
+                  `${path.resolve( `${ to }/${ path.basename( paths[ i ])}` )}${ path.sep }` :
+                  to;
 
-               const toPath = path.resolve( `${ to }/${ path.basename( paths[ i ])}` );
+            await copyPath( Object.assign({}, opts, {
 
-               /* create directory if no exists in target dir */
-               if( ! await exists( toPath )) {
-
-                  await mkdir( toPath, { recursive: true });
-               }
-
-               /* copy into exists nested directory */
-               await copyPath( Object.assign({}, opts, {
-
-                  from: paths[ i ],
-                  to: toPath,
-               }));
-            }
-            else if( pathStat.isFile()){
-
-               await copyPath( Object.assign({}, opts, {
-
-                  from: paths[ i ],
-               }));
-            };
+               from: paths[ i ],
+               to: toPath,
+            }));
          };
          break;
       };
@@ -202,7 +215,7 @@ async function copyPath( opts = {}) {
          await copyPath( opts );
       }
    }
-   catch( e ) {
+   catch( e ){
 
       log.red( e );
       throw e;

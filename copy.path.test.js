@@ -350,17 +350,17 @@ test( `16. copy dir into exists dir`, async t => {
 
    const opts = { from, to, };
 
-   for( let i = 0; i < paths.length; i++ ) {
+   for( let i = 0; i < paths.length; i++ ){
 
-      if( paths[ i ].dir ) {
+      if( paths[ i ].dir ){
 
          shell.mkdir( paths[ i ].dir );
       }
    }
 
-   for( let i = 0; i < paths.length; i++ ) {
+   for( let i = 0; i < paths.length; i++ ){
 
-      if( paths[ i ].file ) {
+      if( paths[ i ].file ){
 
          shell.touch( paths[ i ].file );
          shell.ShellString( 'file content').to( paths[ i ].file );
@@ -374,9 +374,9 @@ test( `16. copy dir into exists dir`, async t => {
 
    await copyPath( opts );
 
-   for( let i = 0; i < paths.length; i++ ) {
+   for( let i = 0; i < paths.length; i++ ){
 
-      if( paths[ i ].dir ) {
+      if( paths[ i ].dir ){
 
          t.deepEqual(
             await exists( paths[ i ].dir.replace( 'test-from', 'test-to/test' )),
@@ -384,7 +384,7 @@ test( `16. copy dir into exists dir`, async t => {
          );
       }
 
-      if( paths[ i ].file ) {
+      if( paths[ i ].file ){
 
          t.deepEqual(
             shell.cat( paths[ i ].file.replace( 'test-from', 'test-to/test' )).stdout,
@@ -412,17 +412,17 @@ test( `17. copy dir into not exists dir`, async t => {
 
    const opts = { from, to, };
 
-   for( let i = 0; i < paths.length; i++ ) {
+   for( let i = 0; i < paths.length; i++ ){
 
-      if( paths[ i ].dir ) {
+      if( paths[ i ].dir ){
 
          shell.mkdir( paths[ i ].dir );
       }
    }
 
-   for( let i = 0; i < paths.length; i++ ) {
+   for( let i = 0; i < paths.length; i++ ){
 
-      if( paths[ i ].file ) {
+      if( paths[ i ].file ){
 
          shell.touch( paths[ i ].file );
          shell.ShellString( 'file content').to( paths[ i ].file );
@@ -433,9 +433,9 @@ test( `17. copy dir into not exists dir`, async t => {
 
    await copyPath( opts );
 
-   for( let i = 0; i < paths.length; i++ ) {
+   for( let i = 0; i < paths.length; i++ ){
 
-      if( paths[ i ].dir ) {
+      if( paths[ i ].dir ){
 
          t.deepEqual(
             await exists( paths[ i ].dir.replace( 'test-from', 'test-to/test' )),
@@ -443,12 +443,61 @@ test( `17. copy dir into not exists dir`, async t => {
          );
       }
 
-      if( paths[ i ].file ) {
+      if( paths[ i ].file ){
 
          t.deepEqual(
             shell.cat( paths[ i ].file.replace( 'test-from', 'test-to/test' )).stdout,
             'file content'
          );
       }
+   }
+});
+
+
+test( `18. copy dir with regex filter`, async t => {
+
+   const paths = [
+
+      { dir: path.resolve( `${ TMP }/test-from/test_1/` )},
+      { dir: path.resolve( `${ TMP }/test-from/test_1/test_11` )},
+      { dir: path.resolve( `${ TMP }/test-from/test_2/` )},
+      { dir: path.resolve( `${ TMP }/test-from/test_3/` )},
+      { file: path.resolve( `${ TMP }/test-from/test_1/file_1` )},
+      { file: path.resolve( `${ TMP }/test-from/test_1/test_11/file_11` )},
+      { file: path.resolve( `${ TMP }/test-from/test_2/file_2` )},
+   ],
+         from = path.resolve( `${ TMP }/test-from/` ),
+         to = path.resolve( `${ TMP }/test-to/` );
+
+   const regex = /test-from\/test_1|test-from\/?$/,
+         opts = { filter: regex, from, to, };
+
+   for( let i = 0; i < paths.length; i++ ){
+
+      if( paths[ i ].dir ){
+
+         shell.mkdir( paths[ i ].dir );
+      }
+   }
+
+   for( let i = 0; i < paths.length; i++ ){
+
+      if( paths[ i ].file ){
+
+         shell.touch( paths[ i ].file );
+      }
+   }
+
+   await copyPath( opts );
+
+   for( let i = 0; i < paths.length; i++ ){
+
+      const path = ( paths[ i ].dir || paths[ i ].file )
+            .replace( 'test-from', 'test-to/test' );
+
+      t.deepEqual(
+         await exists( path ),
+         regex.test( path )
+      );
    }
 });
