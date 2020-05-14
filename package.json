@@ -1,7 +1,7 @@
 {
   "name": "copy-path",
   "version": "0.0.1",
-  "description": "copy path",
+  "description": "copy-path",
   "main": "index.js",
   "scripts": {
     "test": "ava"

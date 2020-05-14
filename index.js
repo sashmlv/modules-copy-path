@@ -10,7 +10,8 @@ const fs    = require( 'fs' ),
       unlink = util.promisify( fs.unlink ),
       rmdir = util.promisify( fs.rmdir ),
       mkdir = util.promisify( fs.mkdir ),
-      readdir = util.promisify( fs.readdir );
+      readdir = util.promisify( fs.readdir ),
+      lstat = util.promisify( fs.lstat );
 
 /**
  * Copy path, with optional content translate
@@ -59,14 +60,14 @@ async function copyPath( opts = {}) {
 
       if( fromExists ) {
 
-         const fromStat = fs.lstatSync( from );
+         const fromStat = await lstat( from );
          fromIsDir  = fromStat.isDirectory();
          fromIsFile = fromStat.isFile();
       }
 
       if( toExists ) {
 
-         const toStat = fs.lstatSync( to );
+         const toStat = await lstat( to );
          toIsDir  = toStat.isDirectory();
          toIsFile = toStat.isFile();
       }
@@ -109,7 +110,7 @@ async function copyPath( opts = {}) {
 
          if( await exists( toPath )){
 
-            const toPathStat = fs.lstatSync( toPath );
+            const toPathStat = await lstat( toPath );
 
             if( toPathStat.isDirectory()){
 
@@ -164,12 +165,35 @@ async function copyPath( opts = {}) {
          const paths = ( await readdir( from ))
                .map( v => path.resolve( `${ from }/${ v }` ));
 
-         for( let i = 0; i < paths.length; i++ ) {
+         /* copy each path separately */
+         for( let i = 0; i < paths.length; i++ ){
 
-            await copyPath( Object.assign({}, opts, {
+            const pathStat = await lstat( paths[ i ]);
 
-               from: paths[ i ]
-            }));
+            if( pathStat.isDirectory()){
+
+               const toPath = path.resolve( `${ to }/${ path.basename( paths[ i ])}` );
+
+               /* create directory if no exists in target dir */
+               if( ! await exists( toPath )) {
+
+                  await mkdir( toPath, { recursive: true });
+               }
+
+               /* copy into exists nested directory */
+               await copyPath( Object.assign({}, opts, {
+
+                  from: paths[ i ],
+                  to: toPath,
+               }));
+            }
+            else if( pathStat.isFile()){
+
+               await copyPath( Object.assign({}, opts, {
+
+                  from: paths[ i ],
+               }));
+            };
          };
          break;
       };

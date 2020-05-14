@@ -345,7 +345,7 @@ test( `16. copy dir into exists dir`, async t => {
       { file: path.resolve( `${ TMP }/test-from/test_1/test_11/file_11` )},
       { file: path.resolve( `${ TMP }/test-from/test_2/file_2` )},
    ],
-         from = path.resolve( `${ TMP }/test-from/test_1/` ),
+         from = path.resolve( `${ TMP }/test-from/` ),
          to = path.resolve( `${ TMP }/test-to/test/` );
 
    const opts = { from, to, };
@@ -390,8 +390,6 @@ test( `16. copy dir into exists dir`, async t => {
             shell.cat( paths[ i ].file.replace( 'test-from', 'test-to/test' )).stdout,
             'file content'
          );
-         console.log( paths[ i ].file.replace( 'test-from', 'test-to/test') );
       }
    }
-
 });
