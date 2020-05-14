@@ -1,0 +1,33 @@
+{
+  "name": "copy-path",
+  "version": "0.0.1",
+  "description": "copy path",
+  "main": "index.js",
+  "scripts": {
+    "test": "ava"
+  },
+  "keywords": [
+    "copy",
+    "path"
+  ],
+  "author": "sashmlv",
+  "license": "ISC",
+  "devDependencies": {
+    "ava": "^3.8.2",
+    "rewire": "^5.0.0",
+    "shelljs": "^0.8.4",
+    "sinon": "^9.0.2",
+    "maintenance": "git+https://github.com/sashmlv/modules-maintenance.git",
+    "module-error": "git+https://github.com/sashmlv/modules-module-error.git"
+  },
+  "ava": {
+    "files": [
+      "!*.js",
+      "./*.test.js"
+    ],
+    "verbose": true,
+    "timeout": "5s",
+    "failFast": true,
+    "serial": true
+  }
+}
