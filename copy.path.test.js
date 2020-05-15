@@ -469,8 +469,9 @@ test( `18. copy dir with regex filter`, async t => {
          from = path.resolve( `${ TMP }/test-from/` ),
          to = path.resolve( `${ TMP }/test-to/` );
 
-   const regex = /test-from\/test_1|test-from\/?$/,
-         opts = { filter: regex, from, to, };
+   const fromRegex = /test-from\/test_1|test-from\/?$/,
+         toRegex = /test-to\/test_1|test-to\/?$/,
+         opts = { filter: fromRegex, from, to, };
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -493,11 +494,11 @@ test( `18. copy dir with regex filter`, async t => {
    for( let i = 0; i < paths.length; i++ ){
 
       const path = ( paths[ i ].dir || paths[ i ].file )
-            .replace( 'test-from', 'test-to/test' );
+            .replace( 'test-from', 'test-to' );
 
       t.deepEqual(
          await exists( path ),
-         regex.test( path )
+         toRegex.test( path )
       );
    }
 });
@@ -518,11 +519,15 @@ test( `19. copy dir with array of regex filters`, async t => {
          from = path.resolve( `${ TMP }/test-from/` ),
          to = path.resolve( `${ TMP }/test-to/` );
 
-   const arr = [
+   const arrFrom = [
       /test-from\/test_1/,
       /test-from\/?$/,
    ],
-         opts = { filter: arr, from, to, };
+         arrTo = [
+            /test-to\/test_1/,
+            /test-to\/?$/,
+         ],
+         opts = { filter: arrFrom, from, to, };
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -545,11 +550,64 @@ test( `19. copy dir with array of regex filters`, async t => {
    for( let i = 0; i < paths.length; i++ ){
 
       const path = ( paths[ i ].dir || paths[ i ].file )
-            .replace( 'test-from', 'test-to/test' );
+            .replace( 'test-from', 'test-to' );
 
       t.deepEqual(
          await exists( path ),
-         Boolean( arr.find( r => r.test( path )))
+         Boolean( arrTo.find( r => r.test( path )))
       );
    }
 });
+
+
+test( `20. copy dir with function filter`, async t => {
+
+   const paths = [
+
+      { dir: path.resolve( `${ TMP }/test-from/test_1/` )},
+      { dir: path.resolve( `${ TMP }/test-from/test_1/test_11` )},
+      { dir: path.resolve( `${ TMP }/test-from/test_2/` )},
+      { dir: path.resolve( `${ TMP }/test-from/test_3/` )},
+      { file: path.resolve( `${ TMP }/test-from/test_1/file_1` )},
+      { file: path.resolve( `${ TMP }/test-from/test_1/test_11/file_11` )},
+      { file: path.resolve( `${ TMP }/test-from/test_2/file_2` )},
+   ],
+         from = path.resolve( `${ TMP }/test-from/` ),
+         to = path.resolve( `${ TMP }/test-to/` ),
+         opts = {
+
+            filter: path => path.endsWith( '/test-from' ) || path.includes( '1' ),
+            from,
+            to,
+         };
+
+   for( let i = 0; i < paths.length; i++ ){
+
+      if( paths[ i ].dir ){
+
+         shell.mkdir( paths[ i ].dir );
+      }
+   }
+
+   for( let i = 0; i < paths.length; i++ ){
+
+      if( paths[ i ].file ){
+
+         shell.touch( paths[ i ].file );
+      }
+   }
+
+   await copyPath( opts );
+
+   for( let i = 0; i < paths.length; i++ ){
+
+      const path = ( paths[ i ].dir || paths[ i ].file )
+            .replace( 'test-from', 'test-to' );
+
+      t.deepEqual(
+         await exists( path ),
+         path.includes( '1' ),
+      );
+   }
+});
+
