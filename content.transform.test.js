@@ -1,14 +1,7 @@
 'use strict';
 
-const path = require( 'path' ),
-   fs = require( 'fs' ),
-   TMP = path.resolve( `${ __dirname }/tmp` ),
-   shell = require( 'shelljs' ),
-   test = require( 'ava' ),
-   sinon = require( 'sinon' ),
+const test = require( 'ava' ),
    rewire = require( 'rewire' ),
-   {exists} = require( 'maintenance' ),
-   // ModuleError = require( 'module.error' ),
    mod = rewire( './index' ),
    {
       contentTransform,

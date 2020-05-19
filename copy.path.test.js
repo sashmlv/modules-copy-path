@@ -5,7 +5,6 @@ const path = require( 'path' ),
    TMP = path.resolve( `${ __dirname }/tmp` ),
    shell = require( 'shelljs' ),
    test = require( 'ava' ),
-   sinon = require( 'sinon' ),
    rewire = require( 'rewire' ),
    {exists} = require( 'maintenance' ),
    mod = rewire( './index' ),
@@ -31,7 +30,7 @@ test.beforeEach( t => {
    shell.rm( '-rf', path.resolve( `${ TMP }/test-to/*` ));
 });
 
-// test.serial.after( t => shell.rm( '-rf', TMP ));
+test.serial.after( t => shell.rm( '-rf', TMP ));
 
 test( `opts should contan 'from' option`, async t => {
 
