@@ -580,10 +580,6 @@ test( `copy dir with function filter`, async t => {
          to,
       };
 
-   const product = Factory
-      .model('App/Models/Product')
-      .create()
-
    for( let i = 0; i < paths.length; i++ ){
 
       if( paths[ i ].dir ){
