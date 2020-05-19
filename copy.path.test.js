@@ -33,7 +33,7 @@ test.beforeEach( t => {
 
 // test.serial.after( t => shell.rm( '-rf', TMP ));
 
-test( `1. opts should contan 'from' option`, async t => {
+test( `opts should contan 'from' option`, async t => {
 
    const opts = {},
       error = await t.throwsAsync( copyPath( opts ));
@@ -42,7 +42,7 @@ test( `1. opts should contan 'from' option`, async t => {
 });
 
 
-test( `2. option 'from' must to be a string`, async t => {
+test( `option 'from' must to be a string`, async t => {
 
    const opts = { from: [ 'data' ]},
       error = await t.throwsAsync( copyPath( opts ));
@@ -51,7 +51,7 @@ test( `2. option 'from' must to be a string`, async t => {
 });
 
 
-test( `3. opts should contan 'to' option`, async t => {
+test( `opts should contan 'to' option`, async t => {
 
    const opts = { from: '/tmp' },
       error = await t.throwsAsync( copyPath( opts ));
@@ -60,7 +60,7 @@ test( `3. opts should contan 'to' option`, async t => {
 });
 
 
-test( `4. option 'to' must to be a string`, async t => {
+test( `option 'to' must to be a string`, async t => {
 
    const opts = { from: 'data', to: [ 'data' ]},
       error = await t.throwsAsync( copyPath( opts ));
@@ -69,7 +69,7 @@ test( `4. option 'to' must to be a string`, async t => {
 });
 
 
-test( `5. error if 'from' path not exists`, async t => {
+test( `error if 'from' path not exists`, async t => {
 
    const opts = {
          from: `${ TMP }/not-exists`,
@@ -81,7 +81,7 @@ test( `5. error if 'from' path not exists`, async t => {
 });
 
 
-test( `6. copy file into exists file whithout force`, async t => {
+test( `copy file into exists file whithout force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
       to = path.resolve( `${ TMP }/test-to/file_2` );
@@ -106,7 +106,7 @@ test( `6. copy file into exists file whithout force`, async t => {
 });
 
 
-test( `7. copy file into exists file whith force`, async t => {
+test( `copy file into exists file whith force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
       to = path.resolve( `${ TMP }/test-to/file_2` );
@@ -130,7 +130,7 @@ test( `7. copy file into exists file whith force`, async t => {
 });
 
 
-test( `8. copy file into exists dir, into exist place, without force`, async t => {
+test( `copy file into exists dir, into exist place, without force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
       to = path.resolve( `${ TMP }/test-to/` ),
@@ -154,7 +154,7 @@ test( `8. copy file into exists dir, into exist place, without force`, async t =
 });
 
 
-test( `9. copy file into exists clear dir`, async t => {
+test( `copy file into exists clear dir`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
       to = path.resolve( `${ TMP }/test-to/` );
@@ -177,7 +177,7 @@ test( `9. copy file into exists clear dir`, async t => {
 });
 
 
-test( `10. copy file into exists dir, into exist place taken with file, with force`, async t => {
+test( `copy file into exists dir, into exist place taken with file, with force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
       to = path.resolve( `${ TMP }/test-to/` ),
@@ -203,7 +203,7 @@ test( `10. copy file into exists dir, into exist place taken with file, with for
 });
 
 
-test( `11. copy file into exists dir, into exist place taken with dir, with force`, async t => {
+test( `copy file into exists dir, into exist place taken with dir, with force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
       to = path.resolve( `${ TMP }/test-to/` ),
@@ -228,7 +228,7 @@ test( `11. copy file into exists dir, into exist place taken with dir, with forc
 });
 
 
-test( `12. copy file into not exists dir, without slash at end`, async t => {
+test( `copy file into not exists dir, without slash at end`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
       to = path.resolve( `${ TMP }/test-to/test` );
@@ -250,7 +250,7 @@ test( `12. copy file into not exists dir, without slash at end`, async t => {
 });
 
 
-test( `13. copy file into not exists dir, with slash at end`, async t => {
+test( `copy file into not exists dir, with slash at end`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/test_1` ),
       fromFile = path.resolve( `${ TMP }/test-from/test_1/file_1` ),
@@ -275,7 +275,7 @@ test( `13. copy file into not exists dir, with slash at end`, async t => {
 });
 
 
-test( `14. copy dir into into exists file, without force`, async t => {
+test( `copy dir into into exists file, without force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/test_1/` ),
       to = path.resolve( `${ TMP }/test-to/test_1` );
@@ -304,7 +304,7 @@ test( `14. copy dir into into exists file, without force`, async t => {
 });
 
 
-test( `15. copy dir into exists file, with force`, async t => {
+test( `copy dir into exists file, with force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/test_1/` ),
       fromFile = path.resolve( `${ TMP }/test-from/test_1/file_1` ),
@@ -333,7 +333,7 @@ test( `15. copy dir into exists file, with force`, async t => {
 });
 
 
-test( `16. copy dir into exists dir`, async t => {
+test( `copy dir into exists dir`, async t => {
 
    const paths = [
 
@@ -395,7 +395,7 @@ test( `16. copy dir into exists dir`, async t => {
 });
 
 
-test( `17. copy dir into not exists dir`, async t => {
+test( `copy dir into not exists dir`, async t => {
 
    const paths = [
 
@@ -454,7 +454,7 @@ test( `17. copy dir into not exists dir`, async t => {
 });
 
 
-test( `18. copy dir with regex filter`, async t => {
+test( `copy dir with regex filter`, async t => {
 
    const paths = [
 
@@ -504,7 +504,7 @@ test( `18. copy dir with regex filter`, async t => {
 });
 
 
-test( `19. copy dir with array of regex filters`, async t => {
+test( `copy dir with array of regex filters`, async t => {
 
    const paths = [
 
@@ -560,7 +560,7 @@ test( `19. copy dir with array of regex filters`, async t => {
 });
 
 
-test( `20. copy dir with function filter`, async t => {
+test( `copy dir with function filter`, async t => {
 
    const paths = [
 
