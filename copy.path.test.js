@@ -1,17 +1,17 @@
 'use strict';
 
 const path = require( 'path' ),
-      fs = require( 'fs' ),
-      TMP = path.resolve( `${ __dirname }/tmp` ),
-      shell = require( 'shelljs' ),
-      test = require( 'ava' ),
-      sinon = require( 'sinon' ),
-      rewire = require( 'rewire' ),
-      {exists} = require( 'maintenance' ),
-      mod = rewire( './index' ),
-      {
-         copyPath
-      } = mod;
+   fs = require( 'fs' ),
+   TMP = path.resolve( `${ __dirname }/tmp` ),
+   shell = require( 'shelljs' ),
+   test = require( 'ava' ),
+   sinon = require( 'sinon' ),
+   rewire = require( 'rewire' ),
+   {exists} = require( 'maintenance' ),
+   mod = rewire( './index' ),
+   {
+      copyPath
+   } = mod;
 
 mod.__set__( 'log', { // disable logger
    red: _=>_,
@@ -36,7 +36,7 @@ test.beforeEach( t => {
 test( `1. opts should contan 'from' option`, async t => {
 
    const opts = {},
-         error = await t.throwsAsync( copyPath( opts ));
+      error = await t.throwsAsync( copyPath( opts ));
 
    t.deepEqual( error.code, 'EMPTY_FROM' );
 });
@@ -45,7 +45,7 @@ test( `1. opts should contan 'from' option`, async t => {
 test( `2. option 'from' must to be a string`, async t => {
 
    const opts = { from: [ 'data' ]},
-         error = await t.throwsAsync( copyPath( opts ));
+      error = await t.throwsAsync( copyPath( opts ));
 
    t.deepEqual( error.code, 'NOT_VALID_FROM' );
 });
@@ -54,7 +54,7 @@ test( `2. option 'from' must to be a string`, async t => {
 test( `3. opts should contan 'to' option`, async t => {
 
    const opts = { from: '/tmp' },
-         error = await t.throwsAsync( copyPath( opts ));
+      error = await t.throwsAsync( copyPath( opts ));
 
    t.deepEqual( error.code, 'EMPTY_TO' );
 });
@@ -63,7 +63,7 @@ test( `3. opts should contan 'to' option`, async t => {
 test( `4. option 'to' must to be a string`, async t => {
 
    const opts = { from: 'data', to: [ 'data' ]},
-         error = await t.throwsAsync( copyPath( opts ));
+      error = await t.throwsAsync( copyPath( opts ));
 
    t.deepEqual( error.code, 'NOT_VALID_TO' );
 });
@@ -72,10 +72,10 @@ test( `4. option 'to' must to be a string`, async t => {
 test( `5. error if 'from' path not exists`, async t => {
 
    const opts = {
-      from: `${ TMP }/not-exists`,
-      to: `${ TMP }/test-to`
-   },
-         error = await t.throwsAsync( copyPath( opts ));
+         from: `${ TMP }/not-exists`,
+         to: `${ TMP }/test-to`
+      },
+      error = await t.throwsAsync( copyPath( opts ));
 
    t.deepEqual( error.code, 'FROM_NOT_EXISTS' );
 });
@@ -84,7 +84,7 @@ test( `5. error if 'from' path not exists`, async t => {
 test( `6. copy file into exists file whithout force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
-         to = path.resolve( `${ TMP }/test-to/file_2` );
+      to = path.resolve( `${ TMP }/test-to/file_2` );
 
    const opts = { force: false, from, to, };
 
@@ -109,7 +109,7 @@ test( `6. copy file into exists file whithout force`, async t => {
 test( `7. copy file into exists file whith force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
-         to = path.resolve( `${ TMP }/test-to/file_2` );
+      to = path.resolve( `${ TMP }/test-to/file_2` );
 
    const opts = { force: true, from, to, };
 
@@ -133,8 +133,8 @@ test( `7. copy file into exists file whith force`, async t => {
 test( `8. copy file into exists dir, into exist place, without force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
-         to = path.resolve( `${ TMP }/test-to/` ),
-         takenTo = path.resolve( `${ to }/file_1` );
+      to = path.resolve( `${ TMP }/test-to/` ),
+      takenTo = path.resolve( `${ to }/file_1` );
 
    const opts = { force: false, from, to, };
 
@@ -157,7 +157,7 @@ test( `8. copy file into exists dir, into exist place, without force`, async t =
 test( `9. copy file into exists clear dir`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
-         to = path.resolve( `${ TMP }/test-to/` );
+      to = path.resolve( `${ TMP }/test-to/` );
 
    const opts = { force: false, from, to, };
 
@@ -180,8 +180,8 @@ test( `9. copy file into exists clear dir`, async t => {
 test( `10. copy file into exists dir, into exist place taken with file, with force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
-         to = path.resolve( `${ TMP }/test-to/` ),
-         takenTo = path.resolve( `${ to }/file_1` );
+      to = path.resolve( `${ TMP }/test-to/` ),
+      takenTo = path.resolve( `${ to }/file_1` );
 
    const opts = { force: true, from, to, };
 
@@ -206,8 +206,8 @@ test( `10. copy file into exists dir, into exist place taken with file, with for
 test( `11. copy file into exists dir, into exist place taken with dir, with force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
-         to = path.resolve( `${ TMP }/test-to/` ),
-         takenTo = path.resolve( `${ to }/file_1` );
+      to = path.resolve( `${ TMP }/test-to/` ),
+      takenTo = path.resolve( `${ to }/file_1` );
 
    const opts = { force: true, from, to, };
 
@@ -231,7 +231,7 @@ test( `11. copy file into exists dir, into exist place taken with dir, with forc
 test( `12. copy file into not exists dir, without slash at end`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
-         to = path.resolve( `${ TMP }/test-to/test` );
+      to = path.resolve( `${ TMP }/test-to/test` );
 
    const opts = { from, to, };
 
@@ -253,9 +253,9 @@ test( `12. copy file into not exists dir, without slash at end`, async t => {
 test( `13. copy file into not exists dir, with slash at end`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/test_1` ),
-         fromFile = path.resolve( `${ TMP }/test-from/test_1/file_1` ),
-         to = `${ path.resolve( `${ TMP }/test-to/test_1/test_2/test_3` )}${ path.sep }`,
-         toFile = path.resolve( `${ to }/file_1` );
+      fromFile = path.resolve( `${ TMP }/test-from/test_1/file_1` ),
+      to = `${ path.resolve( `${ TMP }/test-to/test_1/test_2/test_3` )}${ path.sep }`,
+      toFile = path.resolve( `${ to }/file_1` );
 
    const opts = { from: fromFile, to, };
 
@@ -278,7 +278,7 @@ test( `13. copy file into not exists dir, with slash at end`, async t => {
 test( `14. copy dir into into exists file, without force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/test_1/` ),
-         to = path.resolve( `${ TMP }/test-to/test_1` );
+      to = path.resolve( `${ TMP }/test-to/test_1` );
 
    const opts = { from, to, };
 
@@ -307,9 +307,9 @@ test( `14. copy dir into into exists file, without force`, async t => {
 test( `15. copy dir into exists file, with force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/test_1/` ),
-         fromFile = path.resolve( `${ TMP }/test-from/test_1/file_1` ),
-         to = path.resolve( `${ TMP }/test-to/test_1` ),
-         toFile = path.resolve( `${ TMP }/test-to/test_1/file_1` );
+      fromFile = path.resolve( `${ TMP }/test-from/test_1/file_1` ),
+      to = path.resolve( `${ TMP }/test-to/test_1` ),
+      toFile = path.resolve( `${ TMP }/test-to/test_1/file_1` );
 
    const opts = { force: true, from, to, };
 
@@ -337,16 +337,16 @@ test( `16. copy dir into exists dir`, async t => {
 
    const paths = [
 
-      { dir: path.resolve( `${ TMP }/test-from/test_1/` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_1/test_11` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_2/` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_3/` )},
-      { file: path.resolve( `${ TMP }/test-from/test_1/file_1` )},
-      { file: path.resolve( `${ TMP }/test-from/test_1/test_11/file_11` )},
-      { file: path.resolve( `${ TMP }/test-from/test_2/file_2` )},
-   ],
-         from = path.resolve( `${ TMP }/test-from/` ),
-         to = path.resolve( `${ TMP }/test-to/test/` );
+         { dir: path.resolve( `${ TMP }/test-from/test_1/` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_1/test_11` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_2/` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_3/` )},
+         { file: path.resolve( `${ TMP }/test-from/test_1/file_1` )},
+         { file: path.resolve( `${ TMP }/test-from/test_1/test_11/file_11` )},
+         { file: path.resolve( `${ TMP }/test-from/test_2/file_2` )},
+      ],
+      from = path.resolve( `${ TMP }/test-from/` ),
+      to = path.resolve( `${ TMP }/test-to/test/` );
 
    const opts = { from, to, };
 
@@ -399,16 +399,16 @@ test( `17. copy dir into not exists dir`, async t => {
 
    const paths = [
 
-      { dir: path.resolve( `${ TMP }/test-from/test_1/` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_1/test_11` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_2/` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_3/` )},
-      { file: path.resolve( `${ TMP }/test-from/test_1/file_1` )},
-      { file: path.resolve( `${ TMP }/test-from/test_1/test_11/file_11` )},
-      { file: path.resolve( `${ TMP }/test-from/test_2/file_2` )},
-   ],
-         from = path.resolve( `${ TMP }/test-from/` ),
-         to = path.resolve( `${ TMP }/test-to/test` );
+         { dir: path.resolve( `${ TMP }/test-from/test_1/` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_1/test_11` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_2/` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_3/` )},
+         { file: path.resolve( `${ TMP }/test-from/test_1/file_1` )},
+         { file: path.resolve( `${ TMP }/test-from/test_1/test_11/file_11` )},
+         { file: path.resolve( `${ TMP }/test-from/test_2/file_2` )},
+      ],
+      from = path.resolve( `${ TMP }/test-from/` ),
+      to = path.resolve( `${ TMP }/test-to/test` );
 
    const opts = { from, to, };
 
@@ -458,20 +458,20 @@ test( `18. copy dir with regex filter`, async t => {
 
    const paths = [
 
-      { dir: path.resolve( `${ TMP }/test-from/test_1/` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_1/test_11` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_2/` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_3/` )},
-      { file: path.resolve( `${ TMP }/test-from/test_1/file_1` )},
-      { file: path.resolve( `${ TMP }/test-from/test_1/test_11/file_11` )},
-      { file: path.resolve( `${ TMP }/test-from/test_2/file_2` )},
-   ],
-         from = path.resolve( `${ TMP }/test-from/` ),
-         to = path.resolve( `${ TMP }/test-to/` );
+         { dir: path.resolve( `${ TMP }/test-from/test_1/` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_1/test_11` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_2/` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_3/` )},
+         { file: path.resolve( `${ TMP }/test-from/test_1/file_1` )},
+         { file: path.resolve( `${ TMP }/test-from/test_1/test_11/file_11` )},
+         { file: path.resolve( `${ TMP }/test-from/test_2/file_2` )},
+      ],
+      from = path.resolve( `${ TMP }/test-from/` ),
+      to = path.resolve( `${ TMP }/test-to/` );
 
    const fromRegex = /test-from\/test_1|test-from\/?$/,
-         toRegex = /test-to\/test_1|test-to\/?$/,
-         opts = { filter: fromRegex, from, to, };
+      toRegex = /test-to\/test_1|test-to\/?$/,
+      opts = { filter: fromRegex, from, to, };
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -494,7 +494,7 @@ test( `18. copy dir with regex filter`, async t => {
    for( let i = 0; i < paths.length; i++ ){
 
       const path = ( paths[ i ].dir || paths[ i ].file )
-            .replace( 'test-from', 'test-to' );
+         .replace( 'test-from', 'test-to' );
 
       t.deepEqual(
          await exists( path ),
@@ -508,26 +508,26 @@ test( `19. copy dir with array of regex filters`, async t => {
 
    const paths = [
 
-      { dir: path.resolve( `${ TMP }/test-from/test_1/` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_1/test_11` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_2/` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_3/` )},
-      { file: path.resolve( `${ TMP }/test-from/test_1/file_1` )},
-      { file: path.resolve( `${ TMP }/test-from/test_1/test_11/file_11` )},
-      { file: path.resolve( `${ TMP }/test-from/test_2/file_2` )},
-   ],
-         from = path.resolve( `${ TMP }/test-from/` ),
-         to = path.resolve( `${ TMP }/test-to/` );
+         { dir: path.resolve( `${ TMP }/test-from/test_1/` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_1/test_11` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_2/` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_3/` )},
+         { file: path.resolve( `${ TMP }/test-from/test_1/file_1` )},
+         { file: path.resolve( `${ TMP }/test-from/test_1/test_11/file_11` )},
+         { file: path.resolve( `${ TMP }/test-from/test_2/file_2` )},
+      ],
+      from = path.resolve( `${ TMP }/test-from/` ),
+      to = path.resolve( `${ TMP }/test-to/` );
 
    const arrFrom = [
-      /test-from\/test_1/,
-      /test-from\/?$/,
-   ],
-         arrTo = [
-            /test-to\/test_1/,
-            /test-to\/?$/,
-         ],
-         opts = { filter: arrFrom, from, to, };
+         /test-from\/test_1/,
+         /test-from\/?$/,
+      ],
+      arrTo = [
+         /test-to\/test_1/,
+         /test-to\/?$/,
+      ],
+      opts = { filter: arrFrom, from, to, };
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -550,7 +550,7 @@ test( `19. copy dir with array of regex filters`, async t => {
    for( let i = 0; i < paths.length; i++ ){
 
       const path = ( paths[ i ].dir || paths[ i ].file )
-            .replace( 'test-from', 'test-to' );
+         .replace( 'test-from', 'test-to' );
 
       t.deepEqual(
          await exists( path ),
@@ -564,22 +564,25 @@ test( `20. copy dir with function filter`, async t => {
 
    const paths = [
 
-      { dir: path.resolve( `${ TMP }/test-from/test_1/` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_1/test_11` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_2/` )},
-      { dir: path.resolve( `${ TMP }/test-from/test_3/` )},
-      { file: path.resolve( `${ TMP }/test-from/test_1/file_1` )},
-      { file: path.resolve( `${ TMP }/test-from/test_1/test_11/file_11` )},
-      { file: path.resolve( `${ TMP }/test-from/test_2/file_2` )},
-   ],
-         from = path.resolve( `${ TMP }/test-from/` ),
-         to = path.resolve( `${ TMP }/test-to/` ),
-         opts = {
+         { dir: path.resolve( `${ TMP }/test-from/test_1/` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_1/test_11` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_2/` )},
+         { dir: path.resolve( `${ TMP }/test-from/test_3/` )},
+         { file: path.resolve( `${ TMP }/test-from/test_1/file_1` )},
+         { file: path.resolve( `${ TMP }/test-from/test_1/test_11/file_11` )},
+         { file: path.resolve( `${ TMP }/test-from/test_2/file_2` )},
+      ],
+      from = path.resolve( `${ TMP }/test-from/` ),
+      to = path.resolve( `${ TMP }/test-to/` ),
+      opts = {
+         filter: path => path.endsWith( '/test-from' ) || path.includes( '1' ),
+         from,
+         to,
+      };
 
-            filter: path => path.endsWith( '/test-from' ) || path.includes( '1' ),
-            from,
-            to,
-         };
+   const product = Factory
+      .model('App/Models/Product')
+      .create()
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -602,7 +605,7 @@ test( `20. copy dir with function filter`, async t => {
    for( let i = 0; i < paths.length; i++ ){
 
       const path = ( paths[ i ].dir || paths[ i ].file )
-            .replace( 'test-from', 'test-to' );
+         .replace( 'test-from', 'test-to' );
 
       t.deepEqual(
          await exists( path ),
@@ -610,4 +613,3 @@ test( `20. copy dir with function filter`, async t => {
       );
    }
 });
-
