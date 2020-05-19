@@ -17,19 +17,21 @@ const fs    = require( 'fs' ),
  * TODO: content transform
  * TODO: from and dist not absolute path
  * TODO: log and dry
- * @param {string} from
- * @param {string} to
- * @param {regex|array|function} filter - filter for copying paths
- * @param {boolean} force - overwrite files
- * @param {boolean} log
- * @param {boolean} dry - do not copy files (for testing)
+ * @param {object} opts
+ * @param {string} opts.from
+ * @param {string} opts.to
+ * @param {regex|array|function} opts.filter - filter for copying paths
+ * @param {boolean} opts.force - overwrite files
+ * @param {object|array} opts.transform
+ * @param {boolean} opts.log
+ * @param {boolean} opts.dry - do not copy files (for testing)
  * @return {undefined} Return removed paths
  **/
 async function copyPath( opts = {}){
 
    try {
 
-      const { from, to, filter, force, silent, log, dry, } = opts;
+      const { from, to, filter, force, log, dry, } = opts;
 
       /* check params */
       switch ( true ){
@@ -217,11 +219,153 @@ async function copyPath( opts = {}){
    catch( e ){
 
       log.red( e );
+
       throw e;
    }
 }
 
+/**
+ * Content transform
+ * TODO: log option
+ * @param {object} opts
+ * @param {string} opts.content
+ * @param {object|array} opts.transform
+ * @param {string|regex} opts.transform.find
+ * @param {string} opts.transform.replace
+ * @return {string} Return changed content string
+ **/
+function contentTransform( opts = {}){
+
+   try {
+
+      const { content, transform, } = opts;
+
+      /* check params */
+      switch ( true ){
+
+         case ! content:
+
+            throw new ModuleError({
+
+               message: `Please provide 'content' string, provided: ${ content }`,
+               code: 'EMPTY_CONTENT',
+            });
+
+         case typeof content !== 'string':
+
+            throw new ModuleError({
+
+               message: `Parameter 'content' must to be a string, provided: ${ typeof content }`,
+               code: 'NOT_VALID_CONTENT',
+            });
+
+         case ! transform:
+
+            throw new ModuleError({
+
+               message: `Please provide 'transform' option, provided: ${ transform }`,
+               code: 'EMPTY_TRANSFORM',
+            });
+
+         case typeof transform !== 'object':
+
+            throw new ModuleError({
+
+               message: `Parameter 'transform' must to be object or array, provided: ${ typeof transform }`,
+               code: 'NOT_VALID_TRANSFORM',
+            });
+
+         case ! Array.isArray( transform ): {
+
+            const emptyProp = ( ! transform.find || ! transform.replace );
+
+            if( emptyProp ){
+
+               throw new ModuleError({
+
+                  message: `Transform object must contain 'find' and 'replace' properties, provided: ${ transform }`,
+                  code: 'NOT_VALID_FIND_REPLACE',
+               });
+            };
+
+            const badType = typeof transform.find !== 'string' && ! ( transform.find instanceof RegExp ) || typeof transform.replace !== 'string'
+
+            if( badType ){
+
+               throw new ModuleError({
+
+                  message: `Bad transform options 'find' must be string or regex and 'replace' must be a string, provided: ${ transform }`,
+                  code: 'NOT_VALID_FIND_REPLACE',
+               });
+            };
+            break;
+         };
+         case Array.isArray( transform ): {
+
+            const emptyProp = ! transform.length || transform.find( v => ! v || ! v.find || ! v.replace );
+
+            if( emptyProp ){
+
+               throw new ModuleError({
+
+                  message: `Transform array must contain objects with 'find' and 'replace' properties, provided: ${ transform.find( v => ! v.find || ! v.replace )}`,
+                  code: 'NOT_VALID_FIND_REPLACE',
+               });
+            };
+
+            const badType = transform.find(
+
+               v => typeof v.find !== 'string' && ! ( v.find instanceof RegExp ) || typeof v.replace !== 'string'
+            );
+
+            if( badType ){
+
+               throw new ModuleError({
+
+                  message: `Bad transform options 'find' must be string or regex and 'replace' must be a string, provided: ${ transform.find(
+
+               v => typeof v.find !== 'string' && ! ( v.find instanceof RegExp ) || typeof v.replace !== 'string'
+            )}`,
+                  code: 'NOT_VALID_FIND_REPLACE',
+               });
+            };
+            break;
+         };
+      };
+
+      let result;
+
+      /* replace */
+      if( ! Array.isArray( transform )){
+
+         const { find, replace } = transform;
+
+         result = content.replace( find, replace );
+      }
+      else {
+
+         result = content;
+
+         for( let i = 0; i < transform.length; i++ ) {
+
+            const { find, replace } = transform[ i ];
+
+            result = result.replace( find, replace );
+         }
+      }
+
+      return result;
+   }
+   catch ( e ) {
+
+      log.red( e );
+
+      throw e;
+   }
+};
+
 module.exports = {
 
-   copyPath
+   copyPath,
+   contentTransform,
 };
