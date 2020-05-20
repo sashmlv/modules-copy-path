@@ -608,3 +608,24 @@ test( `copy dir with function filter`, async t => {
       );
    }
 });
+
+
+test( `copy file whith relative path`, async t => {
+
+   const from = `tmp/test-from/file_1`,
+      to = `./tmp/test-to`,
+      toFile = `./tmp/test-to/file_1`;
+
+   const opts = { from, to, };
+
+   shell.touch( from );
+   shell.ShellString( 'file_1 content').to( from );
+
+   t.deepEqual( await exists( from ), true );
+   t.deepEqual( await exists( to ), true );
+   t.deepEqual( shell.cat( from ).stdout, 'file_1 content' );
+
+   await copyPath( opts );
+
+   t.deepEqual( shell.cat( toFile ).stdout, 'file_1 content' );
+});

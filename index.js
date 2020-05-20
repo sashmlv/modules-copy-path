@@ -14,7 +14,7 @@ const fs    = require( 'fs' ),
 
 /**
  * Copy path
- * TODO: from and dist not absolute path
+ * TODO: copy with content transform
  * TODO: log and dry
  * @param {object} opts
  * @param {string} opts.from
