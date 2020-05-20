@@ -287,7 +287,7 @@ function contentTransform( opts = {}){
                });
             };
 
-            const badType = typeof transform.find !== 'string' && ! ( transform.find instanceof RegExp ) || typeof transform.replace !== 'string'
+            const badType = typeof transform.find !== 'string' && ! ( transform.find instanceof RegExp ) || typeof transform.replace !== 'string';
 
             if( badType ){
 
