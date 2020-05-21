@@ -1,8 +1,8 @@
 'use strict';
 
-const fs    = require( 'fs' ),
-   util  = require( 'util' ),
-   path  = require( 'path' ),
+const fs = require( 'fs' ),
+   util = require( 'util' ),
+   path = require( 'path' ),
    { log, exists } = require( 'maintenance' ),
    ModuleError = require( 'module-error' ),
    copyFile = util.promisify( fs.copyFile ),
@@ -16,21 +16,23 @@ const fs    = require( 'fs' ),
  * Copy path
  * TODO: copy with content transform
  * TODO: log and dry
- * @param {object} opts
- * @param {string} opts.from
- * @param {string} opts.to
- * @param {regex|array|function} opts.filter - filter for copying paths
- * @param {boolean} opts.force - overwrite files
- * @param {object|array} opts.transform
- * @param {boolean} opts.log
- * @param {boolean} opts.dry - do not copy files (for testing)
+ * @param {object} params
+ * @param {string} params.from
+ * @param {string} params.to
+ * @param {regex|array|function} params.filter - filter for copying paths
+ * @param {boolean} params.force - overwrite files
+ * @param {object|array} params.transform
+ * @param {string|regex} params.transform.find
+ * @param {string} params.transform.replace
+ * @param {boolean} params.log
+ * @param {boolean} params.dry - do not copy files (for testing)
  * @return {undefined} Return removed paths
  **/
-async function copyPath( opts = {}){
+async function copyPath( params = {}){
 
    try {
 
-      const { from, to, filter, force, log, dry, } = opts;
+      const { from, to, filter, force, log, dry, } = params;
 
       /* check params */
       switch ( true ){
@@ -179,7 +181,7 @@ async function copyPath( opts = {}){
 
             for( let i = 0; i < paths.length; i++ ){
 
-               await copyPath( Object.assign({}, opts, {
+               await copyPath( Object.assign({}, params, {
 
                   from: paths[ i ]
                }));
@@ -201,7 +203,7 @@ async function copyPath( opts = {}){
                   `${path.resolve( `${ to }/${ path.basename( paths[ i ])}` )}${ path.sep }` :
                   to;
 
-               await copyPath( Object.assign({}, opts, {
+               await copyPath( Object.assign({}, params, {
 
                   from: paths[ i ],
                   to: toPath,
@@ -212,7 +214,7 @@ async function copyPath( opts = {}){
          case fromIsDir && ! toExists:
 
             await mkdir( to, { recursive: true });
-            await copyPath( opts );
+            await copyPath( params );
       }
    }
    catch( e ){
@@ -226,18 +228,18 @@ async function copyPath( opts = {}){
 /**
  * Content transform
  * TODO: log option
- * @param {object} opts
- * @param {string} opts.content
- * @param {object|array} opts.transform
- * @param {string|regex} opts.transform.find
- * @param {string} opts.transform.replace
+ * @param {object} params
+ * @param {string} params.content
+ * @param {object|array} params.transform
+ * @param {string|regex} params.transform.find
+ * @param {string} params.transform.replace
  * @return {string} Return changed content string
  **/
-function contentTransform( opts = {}){
+function contentTransform( params = {}){
 
    try {
 
-      const { content, transform, } = opts;
+      const { content, transform, } = params;
 
       /* check params */
       switch ( true ){
@@ -363,8 +365,26 @@ function contentTransform( opts = {}){
    }
 };
 
+
+/**
+ * Copy file, optional content transform
+ * @param {object} params
+ * @param {string} params.from
+ * @param {string} params.to
+ * @param {object|array} params.transform
+ * @param {string|regex} params.transform.find
+ * @param {string} params.transform.replace
+ * @return {undefined}
+ **/
+async function copyFileTransform( params = {}){
+
+//    const { find, replace } = params;
+//    await copyFile();
+};
+
 module.exports = {
 
    copyPath,
    contentTransform,
+   copyFileTransform,
 };

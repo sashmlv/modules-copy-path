@@ -36,40 +36,40 @@ test.beforeEach( t => {
 
 test.serial.after( t => shell.rm( '-rf', TMP ));
 
-test( `opts should contan 'from' option`, async t => {
+test( `params should contan 'from' parameter`, async t => {
 
-   const opts = {},
-      error = await t.throwsAsync( copyPath( opts ));
+   const params = {},
+      error = await t.throwsAsync( copyPath( params ));
 
    t.deepEqual( error.code, 'EMPTY_FROM' );
    t.deepEqual( copyFile.callCount, 0 );
 });
 
 
-test( `option 'from' must to be a string`, async t => {
+test( `parameter 'from' must to be a string`, async t => {
 
-   const opts = { from: [ 'data' ]},
-      error = await t.throwsAsync( copyPath( opts ));
+   const params = { from: [ 'data' ]},
+      error = await t.throwsAsync( copyPath( params ));
 
    t.deepEqual( error.code, 'NOT_VALID_FROM' );
    t.deepEqual( copyFile.callCount, 0 );
 });
 
 
-test( `opts should contan 'to' option`, async t => {
+test( `params should contan 'to' parameter`, async t => {
 
-   const opts = { from: '/tmp' },
-      error = await t.throwsAsync( copyPath( opts ));
+   const params = { from: '/tmp' },
+      error = await t.throwsAsync( copyPath( params ));
 
    t.deepEqual( error.code, 'EMPTY_TO' );
    t.deepEqual( copyFile.callCount, 0 );
 });
 
 
-test( `option 'to' must to be a string`, async t => {
+test( `parameter 'to' must to be a string`, async t => {
 
-   const opts = { from: 'data', to: [ 'data' ]},
-      error = await t.throwsAsync( copyPath( opts ));
+   const params = { from: 'data', to: [ 'data' ]},
+      error = await t.throwsAsync( copyPath( params ));
 
    t.deepEqual( error.code, 'NOT_VALID_TO' );
    t.deepEqual( copyFile.callCount, 0 );
@@ -78,11 +78,11 @@ test( `option 'to' must to be a string`, async t => {
 
 test( `error if 'from' path not exists`, async t => {
 
-   const opts = {
+   const params = {
          from: `${ TMP }/not-exists`,
          to: `${ TMP }/test-to`
       },
-      error = await t.throwsAsync( copyPath( opts ));
+      error = await t.throwsAsync( copyPath( params ));
 
    t.deepEqual( error.code, 'FROM_NOT_EXISTS' );
    t.deepEqual( copyFile.callCount, 0 );
@@ -94,7 +94,7 @@ test( `copy file into exists file whithout force`, async t => {
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
       to = path.resolve( `${ TMP }/test-to/file_2` );
 
-   const opts = { force: false, from, to, };
+   const params = { force: false, from, to, };
 
    shell.touch( from );
    shell.ShellString( 'file_1 content' ).to( from );
@@ -107,7 +107,7 @@ test( `copy file into exists file whithout force`, async t => {
    t.deepEqual( shell.cat( from ).stdout, 'file_1 content' );
    t.deepEqual( shell.cat( to ).stdout, 'file_2 content' );
 
-   const error = await t.throwsAsync( copyPath( opts ));
+   const error = await t.throwsAsync( copyPath( params ));
 
    t.deepEqual( shell.cat( to ).stdout, 'file_2 content' );
    t.deepEqual( error.code, 'DEST_FILE_EXISTS' );
@@ -120,7 +120,7 @@ test( `copy file into exists file whith force`, async t => {
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
       to = path.resolve( `${ TMP }/test-to/file_2` );
 
-   const opts = { force: true, from, to, };
+   const params = { force: true, from, to, };
 
    shell.touch( from );
    shell.ShellString( 'file_1 content').to( from );
@@ -133,7 +133,7 @@ test( `copy file into exists file whith force`, async t => {
    t.deepEqual( shell.cat( from ).stdout, 'file_1 content' );
    t.deepEqual( shell.cat( to ).stdout, 'file_2 content' );
 
-   await copyPath( opts );
+   await copyPath( params );
 
    t.deepEqual( shell.cat( to ).stdout, 'file_1 content' );
    t.deepEqual( copyFile.callCount, 1 );
@@ -146,7 +146,7 @@ test( `copy file into exists dir, into exist place, without force`, async t => {
       to = path.resolve( `${ TMP }/test-to/` ),
       takenTo = path.resolve( `${ to }/file_1` );
 
-   const opts = { force: false, from, to, };
+   const params = { force: false, from, to, };
 
    shell.touch( from );
    shell.touch( takenTo );
@@ -158,7 +158,7 @@ test( `copy file into exists dir, into exist place, without force`, async t => {
 
    t.deepEqual( toStat.isFile(), true );
 
-   const error = await t.throwsAsync( copyPath( opts ));
+   const error = await t.throwsAsync( copyPath( params ));
 
    t.deepEqual( error.code, 'DEST_EXISTS' );
    t.deepEqual( copyFile.callCount, 0 );
@@ -170,7 +170,7 @@ test( `copy file into exists clear dir`, async t => {
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
       to = path.resolve( `${ TMP }/test-to/` );
 
-   const opts = { force: false, from, to, };
+   const params = { force: false, from, to, };
 
    shell.touch( from );
    shell.ShellString( 'file_1 content').to( from );
@@ -182,7 +182,7 @@ test( `copy file into exists clear dir`, async t => {
 
    t.deepEqual( toStat.isDirectory(), true );
 
-   await copyPath( opts );
+   await copyPath( params );
 
    t.deepEqual( shell.cat( path.resolve( `${ to }/file_1` )).stdout, 'file_1 content' );
    t.deepEqual( copyFile.callCount, 1 );
@@ -195,7 +195,7 @@ test( `copy file into exists dir, into exist place taken with file, with force`,
       to = path.resolve( `${ TMP }/test-to/` ),
       takenTo = path.resolve( `${ to }/file_1` );
 
-   const opts = { force: true, from, to, };
+   const params = { force: true, from, to, };
 
    shell.touch( from );
    shell.ShellString( 'file_1 content').to( from );
@@ -209,7 +209,7 @@ test( `copy file into exists dir, into exist place taken with file, with force`,
    t.deepEqual( toStat.isFile(), true );
    t.deepEqual( shell.cat( takenTo ).stdout, '' );
 
-   await copyPath( opts );
+   await copyPath( params );
 
    t.deepEqual( shell.cat( takenTo ).stdout, 'file_1 content' );
    t.deepEqual( copyFile.callCount, 1 );
@@ -222,7 +222,7 @@ test( `copy file into exists dir, into exist place taken with dir, with force`, 
       to = path.resolve( `${ TMP }/test-to/` ),
       takenTo = path.resolve( `${ to }/file_1` );
 
-   const opts = { force: true, from, to, };
+   const params = { force: true, from, to, };
 
    shell.touch( from );
    shell.ShellString( 'file_1 content').to( from );
@@ -235,7 +235,7 @@ test( `copy file into exists dir, into exist place taken with dir, with force`, 
 
    t.deepEqual( toStat.isDirectory(), true );
 
-   await copyPath( opts );
+   await copyPath( params );
 
    t.deepEqual( shell.cat( takenTo ).stdout, 'file_1 content' );
    t.deepEqual( copyFile.callCount, 1 );
@@ -247,7 +247,7 @@ test( `copy file into not exists dir, without slash at end`, async t => {
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
       to = path.resolve( `${ TMP }/test-to/test` );
 
-   const opts = { from, to, };
+   const params = { from, to, };
 
    shell.touch( from );
    shell.ShellString( 'file_1 content').to( from );
@@ -255,7 +255,7 @@ test( `copy file into not exists dir, without slash at end`, async t => {
    t.deepEqual( await exists( from ), true );
    t.deepEqual( await exists( to ), false );
 
-   await copyPath( opts );
+   await copyPath( params );
 
    const toStat = fs.lstatSync( to );
 
@@ -272,7 +272,7 @@ test( `copy file into not exists dir, with slash at end`, async t => {
       to = `${ path.resolve( `${ TMP }/test-to/test_1/test_2/test_3` )}${ path.sep }`,
       toFile = path.resolve( `${ to }/file_1` );
 
-   const opts = { from: fromFile, to, };
+   const params = { from: fromFile, to, };
 
    shell.mkdir( from );
    shell.touch( fromFile );
@@ -281,7 +281,7 @@ test( `copy file into not exists dir, with slash at end`, async t => {
    t.deepEqual( await exists( fromFile ), true );
    t.deepEqual( await exists( to ), false );
 
-   await copyPath( opts );
+   await copyPath( params );
 
    const toStat = fs.lstatSync( to );
 
@@ -296,7 +296,7 @@ test( `copy dir into into exists file, without force`, async t => {
    const from = path.resolve( `${ TMP }/test-from/test_1/` ),
       to = path.resolve( `${ TMP }/test-to/test_1` );
 
-   const opts = { from, to, };
+   const params = { from, to, };
 
    shell.mkdir( from );
    shell.touch( to );
@@ -310,7 +310,7 @@ test( `copy dir into into exists file, without force`, async t => {
    t.deepEqual( toStat.isFile(), true );
    t.deepEqual( shell.cat( to ).stdout, 'test_1 content' );
 
-   const error = await t.throwsAsync( copyPath( opts ));
+   const error = await t.throwsAsync( copyPath( params ));
 
    t.deepEqual( error.code, 'DEST_EXISTS' );
 
@@ -328,7 +328,7 @@ test( `copy dir into exists file, with force`, async t => {
       to = path.resolve( `${ TMP }/test-to/test_1` ),
       toFile = path.resolve( `${ TMP }/test-to/test_1/file_1` );
 
-   const opts = { force: true, from, to, };
+   const params = { force: true, from, to, };
 
    shell.mkdir( from );
    shell.touch( fromFile );
@@ -342,7 +342,7 @@ test( `copy dir into exists file, with force`, async t => {
 
    t.deepEqual( toStat.isFile(), true );
 
-   await copyPath( opts );
+   await copyPath( params );
 
    t.deepEqual( await exists( toFile ), true );
    t.deepEqual( shell.cat( toFile ).stdout, 'file_1 content' );
@@ -365,7 +365,7 @@ test( `copy dir into exists dir`, async t => {
       from = path.resolve( `${ TMP }/test-from/` ),
       to = path.resolve( `${ TMP }/test-to/test/` );
 
-   const opts = { from, to, };
+   const params = { from, to, };
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -389,7 +389,7 @@ test( `copy dir into exists dir`, async t => {
    const toStat = fs.lstatSync( to );
    t.deepEqual( toStat.isDirectory(), true );
 
-   await copyPath( opts );
+   await copyPath( params );
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -428,7 +428,7 @@ test( `copy dir into not exists dir`, async t => {
       from = path.resolve( `${ TMP }/test-from/` ),
       to = path.resolve( `${ TMP }/test-to/test` );
 
-   const opts = { from, to, };
+   const params = { from, to, };
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -449,7 +449,7 @@ test( `copy dir into not exists dir`, async t => {
 
    t.deepEqual( await exists( to ), false );
 
-   await copyPath( opts );
+   await copyPath( params );
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -490,7 +490,7 @@ test( `copy dir with regex filter`, async t => {
 
    const fromRegex = /test-from\/test_1|test-from\/?$/,
       toRegex = /test-to\/test_1|test-to\/?$/,
-      opts = { filter: fromRegex, from, to, };
+      params = { filter: fromRegex, from, to, };
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -508,7 +508,7 @@ test( `copy dir with regex filter`, async t => {
       }
    }
 
-   await copyPath( opts );
+   await copyPath( params );
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -547,7 +547,7 @@ test( `copy dir with array of regex filters`, async t => {
          /test-to\/test_1/,
          /test-to\/?$/,
       ],
-      opts = { filter: arrFrom, from, to, };
+      params = { filter: arrFrom, from, to, };
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -565,7 +565,7 @@ test( `copy dir with array of regex filters`, async t => {
       }
    }
 
-   await copyPath( opts );
+   await copyPath( params );
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -595,7 +595,7 @@ test( `copy dir with function filter`, async t => {
       ],
       from = path.resolve( `${ TMP }/test-from/` ),
       to = path.resolve( `${ TMP }/test-to/` ),
-      opts = {
+      params = {
          filter: path => path.endsWith( '/test-from' ) || path.includes( '1' ),
          from,
          to,
@@ -617,7 +617,7 @@ test( `copy dir with function filter`, async t => {
       }
    }
 
-   await copyPath( opts );
+   await copyPath( params );
 
    for( let i = 0; i < paths.length; i++ ){
 
@@ -639,17 +639,49 @@ test( `copy file whith relative path`, async t => {
       to = `./tmp/test-to`,
       toFile = `./tmp/test-to/file_1`;
 
-   const opts = { from, to, };
+   const params = { from, to, };
 
    shell.touch( from );
    shell.ShellString( 'file_1 content').to( from );
 
    t.deepEqual( await exists( from ), true );
    t.deepEqual( await exists( to ), true );
+   t.deepEqual( await exists( toFile ), false );
    t.deepEqual( shell.cat( from ).stdout, 'file_1 content' );
 
-   await copyPath( opts );
+   await copyPath( params );
 
    t.deepEqual( shell.cat( toFile ).stdout, 'file_1 content' );
+   t.deepEqual( copyFile.callCount, 1 );
+});
+
+test( `copy file whith content transform`, async t => {
+
+   const from = `tmp/test-from/file_1`,
+      to = `./tmp/test-to`,
+      toFile = `./tmp/test-to/file_1`;
+
+   const params = {
+
+      from,
+      to,
+      transform: {
+
+         find: 'some',
+         replace: 'just',
+      }
+   };
+
+   shell.touch( from );
+   shell.ShellString( 'file_1 some content').to( from );
+
+   t.deepEqual( await exists( from ), true );
+   t.deepEqual( await exists( to ), true );
+   t.deepEqual( await exists( toFile ), false );
+   t.deepEqual( shell.cat( from ).stdout, 'file_1 some content' );
+
+   await copyPath( params );
+
+   t.deepEqual( shell.cat( toFile ).stdout, 'file_1 just content' );
    t.deepEqual( copyFile.callCount, 1 );
 });

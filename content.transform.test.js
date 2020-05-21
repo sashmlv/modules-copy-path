@@ -11,59 +11,59 @@ mod.__set__( 'log', { // disable logger
    red: _=>_,
 });
 
-test( `opts should contan 'content' option`, t => {
+test( `params should contan 'content' parameter`, t => {
 
-   const opts = {};
-   const error = t.throws( _=> contentTransform( opts ));
+   const params = {};
+   const error = t.throws( _=> contentTransform( params ));
    t.deepEqual( error.code, 'EMPTY_CONTENT' );
 });
 
 
-test( `option 'content' must to be a string`, async t => {
+test( `parameter 'content' must to be a string`, async t => {
 
-   const opts = { content: 1 };
-   const error = t.throws( _=> contentTransform( opts ));
+   const params = { content: 1 };
+   const error = t.throws( _=> contentTransform( params ));
    t.deepEqual( error.code, 'NOT_VALID_CONTENT' );
 });
 
 
-test( `opts should contan 'transform' option`, t => {
+test( `params should contan 'transform' parameter`, t => {
 
-   const opts = { content: 'text tex t ext ex test es text' };
-   const error = t.throws( _=> contentTransform( opts ));
+   const params = { content: 'text tex t ext ex test es text' };
+   const error = t.throws( _=> contentTransform( params ));
    t.deepEqual( error.code, 'EMPTY_TRANSFORM' );
 });
 
 
-test( `option 'transform' must to be a object or array`, async t => {
+test( `parameter 'transform' must to be a object or array`, async t => {
 
-   const opts = {
+   const params = {
 
       content: 'text tex t ext ex test es text',
       transform: 1,
    };
 
-   const error = t.throws( _=> contentTransform( opts ));
+   const error = t.throws( _=> contentTransform( params ));
    t.deepEqual( error.code, 'NOT_VALID_TRANSFORM' );
 });
 
 
 test( `'transform' object must contain 'find' and 'replace' properties`, async t => {
 
-   const opts = {
+   const params = {
 
       content: 'text tex t ext ex test es text',
       transform: {},
    };
 
-   const error = t.throws( _=> contentTransform( opts ));
+   const error = t.throws( _=> contentTransform( params ));
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 });
 
 
-test( `'transform' object options type`, async t => {
+test( `'transform' object parameters type`, async t => {
 
-   const opts = {
+   const params = {
 
       content: 'text tex t ext ex test es text',
       transform: {
@@ -73,40 +73,40 @@ test( `'transform' object options type`, async t => {
       },
    };
 
-   let error = t.throws( _=> contentTransform( opts ));
+   let error = t.throws( _=> contentTransform( params ));
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 
-   opts.transform.find = 'test';
-   opts.transform.replace = 1;
+   params.transform.find = 'test';
+   params.transform.replace = 1;
 
-   error = t.throws( _=> contentTransform( opts ));
+   error = t.throws( _=> contentTransform( params ));
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 
-   opts.transform.find = 'test';
-   opts.transform.replace = 'test';
-   t.notThrows( _=> contentTransform( opts ));
+   params.transform.find = 'test';
+   params.transform.replace = 'test';
+   t.notThrows( _=> contentTransform( params ));
 
-   opts.transform.find = new RegExp();
-   t.notThrows( _=> contentTransform( opts ));
+   params.transform.find = new RegExp();
+   t.notThrows( _=> contentTransform( params ));
 });
 
 
 test( `'transform' array must contain objects with 'find' and 'replace' properties`, async t => {
 
-   const opts = {
+   const params = {
 
       content: 'text tex t ext ex test es text',
       transform: [],
    };
 
-   const error = t.throws( _=> contentTransform( opts ));
+   const error = t.throws( _=> contentTransform( params ));
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 });
 
 
-test( `'transform' array options type`, async t => {
+test( `'transform' array parameters type`, async t => {
 
-   const opts = {
+   const params = {
 
       content: 'text tex t ext ex test es text',
       transform: [{
@@ -116,27 +116,27 @@ test( `'transform' array options type`, async t => {
       }],
    };
 
-   let error = t.throws( _=> contentTransform( opts ));
+   let error = t.throws( _=> contentTransform( params ));
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 
-   opts.transform[ 0 ].find = 'test';
-   opts.transform[ 0 ].replace = 1;
+   params.transform[ 0 ].find = 'test';
+   params.transform[ 0 ].replace = 1;
 
-   error = t.throws( _=> contentTransform( opts ));
+   error = t.throws( _=> contentTransform( params ));
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 
-   opts.transform[ 0 ].find = 'test';
-   opts.transform[ 0 ].replace = 'test';
-   t.notThrows( _=> contentTransform( opts ));
+   params.transform[ 0 ].find = 'test';
+   params.transform[ 0 ].replace = 'test';
+   t.notThrows( _=> contentTransform( params ));
 
-   opts.transform[ 0 ].find = new RegExp();
-   t.notThrows( _=> contentTransform( opts ));
+   params.transform[ 0 ].find = new RegExp();
+   t.notThrows( _=> contentTransform( params ));
 });
 
 
 test( `transform content`, async t => {
 
-   const opts = {
+   const params = {
 
       content: 'text abc z ext xyz test and text',
       transform: {
@@ -146,9 +146,9 @@ test( `transform content`, async t => {
       },
    };
 
-   t.deepEqual( opts.content,              'text abc z ext xyz test and text' );
-   t.deepEqual(  contentTransform( opts ), 'text cba z ext xyz test and text' );
-   opts.transform = [{
+   t.deepEqual( params.content,              'text abc z ext xyz test and text' );
+   t.deepEqual(  contentTransform( params ), 'text cba z ext xyz test and text' );
+   params.transform = [{
 
       find: /test/g,
       replace: 'just',
@@ -157,5 +157,5 @@ test( `transform content`, async t => {
       find: 'and',
       replace: 'not',
    }];
-   t.deepEqual(  contentTransform( opts ), 'text abc z ext xyz just not text' );
+   t.deepEqual(  contentTransform( params ), 'text abc z ext xyz just not text' );
 });
