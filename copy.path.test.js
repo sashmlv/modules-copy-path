@@ -45,17 +45,6 @@ test( `params should contan 'from' parameter`, async t => {
    t.deepEqual( copyFile.callCount, 0 );
 });
 
-
-test( `parameter 'from' must to be a string`, async t => {
-
-   const params = { from: [ 'data' ]},
-      error = await t.throwsAsync( copyPath( params ));
-
-   t.deepEqual( error.code, 'NOT_VALID_FROM' );
-   t.deepEqual( copyFile.callCount, 0 );
-});
-
-
 test( `params should contan 'to' parameter`, async t => {
 
    const params = { from: '/tmp' },
@@ -64,17 +53,6 @@ test( `params should contan 'to' parameter`, async t => {
    t.deepEqual( error.code, 'EMPTY_TO' );
    t.deepEqual( copyFile.callCount, 0 );
 });
-
-
-test( `parameter 'to' must to be a string`, async t => {
-
-   const params = { from: 'data', to: [ 'data' ]},
-      error = await t.throwsAsync( copyPath( params ));
-
-   t.deepEqual( error.code, 'NOT_VALID_TO' );
-   t.deepEqual( copyFile.callCount, 0 );
-});
-
 
 test( `error if 'from' path not exists`, async t => {
 

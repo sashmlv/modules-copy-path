@@ -3,14 +3,16 @@
 const fs = require( 'fs' ),
    util = require( 'util' ),
    path = require( 'path' ),
-   { log, exists } = require( 'maintenance' ),
+   { log, exists, getClass } = require( 'maintenance' ),
    ModuleError = require( 'module-error' ),
-   copyFile = util.promisify( fs.copyFile ),
-   unlink = util.promisify( fs.unlink ),
-   rmdir = util.promisify( fs.rmdir ),
-   mkdir = util.promisify( fs.mkdir ),
-   readdir = util.promisify( fs.readdir ),
-   lstat = util.promisify( fs.lstat );
+   copyFile  = util.promisify( fs.copyFile ),
+   unlink    = util.promisify( fs.unlink ),
+   rmdir     = util.promisify( fs.rmdir ),
+   mkdir     = util.promisify( fs.mkdir ),
+   readdir   = util.promisify( fs.readdir ),
+   lstat     = util.promisify( fs.lstat ),
+   readFile  = util.promisify( fs.readFile ),
+   writeFile = util.promisify( fs.writeFile );
 
 /**
  * Copy path
@@ -32,26 +34,11 @@ async function copyPath( params = {}){
 
    try {
 
+      checkParams([ 'from', 'to', 'transform', ], params );
+
       const { from, to, filter, force, log, dry, } = params;
 
-      /* check params */
-      switch ( true ){
-
-         case ! from:
-
-            throw new ModuleError({ message: `Please provide 'from' path, provided: ${ from }`, code: 'EMPTY_FROM', });
-
-         case typeof from !== 'string':
-
-            throw new ModuleError({ message: `Parameter 'from' must to be a string, provided: ${ typeof from }`, code: 'NOT_VALID_FROM', });
-
-         case ! to:
-
-            throw new ModuleError({ message: `Please provide 'to' path, provided: ${ from }`, code: 'EMPTY_TO', });
-
-         case typeof to !== 'string':
-
-            throw new ModuleError({ message: `Parameter 'to' must to be a string, provided: ${ typeof to }`, code: 'NOT_VALID_TO', });
+      switch( true ){
 
          case filter instanceof RegExp:
 
@@ -59,6 +46,7 @@ async function copyPath( params = {}){
 
                return;
             }
+
             break;
 
          case Array.isArray( filter ):
@@ -67,6 +55,7 @@ async function copyPath( params = {}){
 
                return;
             };
+
             break;
 
          case typeof filter === 'function':
@@ -75,8 +64,9 @@ async function copyPath( params = {}){
 
                return;
             }
+
             break;
-      }
+      };
 
       let fromExists = await exists( from ),
          fromIsDir,
@@ -100,23 +90,25 @@ async function copyPath( params = {}){
          toIsFile = toStat.isFile();
       }
 
-      /* module logic */
       switch ( true ){
 
          case ! fromExists:
 
             throw new ModuleError({ message: `Path 'from' not exists: ${ from }`, code: 'FROM_NOT_EXISTS', });
+
             break;
 
          case fromIsFile && toIsFile && ! force:
 
             throw new ModuleError({ message: `Destination file already exists: ${ to }`, code: 'DEST_FILE_EXISTS', });
+
             break;
 
          case fromIsFile && toIsFile && force:
 
             await unlink( to );
             await copyFile( from, to );
+
             break;
 
          case fromIsFile && toIsDir && ! force: {
@@ -129,6 +121,7 @@ async function copyPath( params = {}){
             };
 
             await copyFile( from, toPath );
+
             break;
          };
 
@@ -151,12 +144,14 @@ async function copyPath( params = {}){
             };
 
             await copyFile( from, toPath );
+
             break;
          };
 
          case fromIsFile && ! toExists && ! toHasLastSlash:
 
             await copyFile( from, to );
+
             break;
 
          case fromIsFile && ! toExists && toHasLastSlash: {
@@ -164,11 +159,14 @@ async function copyPath( params = {}){
             const toPath = path.resolve( `${ to }/${ path.basename( from )}` );
             await mkdir( to, { recursive: true });
             await copyFile( from, toPath );
+
             break;
          };
+
          case fromIsDir && toIsFile && ! force:
 
             throw new ModuleError({ message: `Destination already exists: ${ to }`, code: 'DEST_EXISTS', });
+
             break;
 
          case fromIsDir && toIsFile && force: {
@@ -186,8 +184,10 @@ async function copyPath( params = {}){
                   from: paths[ i ]
                }));
             };
+
             break;
          };
+
          case fromIsDir && toIsDir: {
 
             const paths = ( await readdir( from ))
@@ -209,21 +209,24 @@ async function copyPath( params = {}){
                   to: toPath,
                }));
             };
+
             break;
          };
          case fromIsDir && ! toExists:
 
             await mkdir( to, { recursive: true });
             await copyPath( params );
-      }
+
+            break;
+      };
    }
    catch( e ){
 
       log.red( e );
 
       throw e;
-   }
-}
+   };
+};
 
 /**
  * Content transform
@@ -235,104 +238,13 @@ async function copyPath( params = {}){
  * @param {string} params.transform.replace
  * @return {string} Return changed content string
  **/
-function contentTransform( params = {}){
+function contentTransform( params ){
 
    try {
 
+      checkParams([ 'content', 'transform', ], params );
+
       const { content, transform, } = params;
-
-      /* check params */
-      switch ( true ){
-
-         case ! content:
-
-            throw new ModuleError({
-
-               message: `Please provide 'content' string, provided: ${ content }`,
-               code: 'EMPTY_CONTENT',
-            });
-
-         case typeof content !== 'string':
-
-            throw new ModuleError({
-
-               message: `Parameter 'content' must to be a string, provided: ${ typeof content }`,
-               code: 'NOT_VALID_CONTENT',
-            });
-
-         case ! transform:
-
-            throw new ModuleError({
-
-               message: `Please provide 'transform' option, provided: ${ transform }`,
-               code: 'EMPTY_TRANSFORM',
-            });
-
-         case typeof transform !== 'object':
-
-            throw new ModuleError({
-
-               message: `Parameter 'transform' must to be object or array, provided: ${ typeof transform }`,
-               code: 'NOT_VALID_TRANSFORM',
-            });
-
-         case ! Array.isArray( transform ): {
-
-            const emptyProp = ( ! transform.find || ! transform.replace );
-
-            if( emptyProp ){
-
-               throw new ModuleError({
-
-                  message: `Transform object must contain 'find' and 'replace' properties, provided: ${ transform }`,
-                  code: 'NOT_VALID_FIND_REPLACE',
-               });
-            };
-
-            const badType = typeof transform.find !== 'string' && ! ( transform.find instanceof RegExp ) || typeof transform.replace !== 'string';
-
-            if( badType ){
-
-               throw new ModuleError({
-
-                  message: `Bad transform options 'find' must be string or regex and 'replace' must be a string, provided: ${ transform }`,
-                  code: 'NOT_VALID_FIND_REPLACE',
-               });
-            };
-            break;
-         };
-         case Array.isArray( transform ): {
-
-            const emptyProp = ! transform.length || transform.find( v => ! v || ! v.find || ! v.replace );
-
-            if( emptyProp ){
-
-               throw new ModuleError({
-
-                  message: `Transform array must contain objects with 'find' and 'replace' properties, provided: ${ transform.find( v => ! v.find || ! v.replace )}`,
-                  code: 'NOT_VALID_FIND_REPLACE',
-               });
-            };
-
-            const badType = transform.find(
-
-               v => typeof v.find !== 'string' && ! ( v.find instanceof RegExp ) || typeof v.replace !== 'string'
-            );
-
-            if( badType ){
-
-               throw new ModuleError({
-
-                  message: `Bad transform options 'find' must be string or regex and 'replace' must be a string, provided: ${ transform.find(
-
-               v => typeof v.find !== 'string' && ! ( v.find instanceof RegExp ) || typeof v.replace !== 'string'
-            )}`,
-                  code: 'NOT_VALID_FIND_REPLACE',
-               });
-            };
-            break;
-         };
-      };
 
       let result;
 
@@ -365,7 +277,6 @@ function contentTransform( params = {}){
    }
 };
 
-
 /**
  * Copy file, optional content transform
  * @param {object} params
@@ -376,10 +287,180 @@ function contentTransform( params = {}){
  * @param {string} params.transform.replace
  * @return {undefined}
  **/
-async function copyFileTransform( params = {}){
+async function copyFileTransform( params ){
 
-//    const { find, replace } = params;
-//    await copyFile();
+   checkParams([ 'from', 'to', 'transform', ], params );
+
+   const { from, to, transform } = params;
+
+   // if( transform ) {
+
+   //    let content = readFile(  );
+   //    writeFile
+   // }
+   // else {
+
+   //    await copyFile( from, to );
+   // };
+
+};
+
+/**
+ * Check params
+ * @param {string|array} fields
+ * @param {object} params
+ * @return {undefined}
+ **/
+function checkParams( fields, params ){
+
+   if( fields && ( typeof fields === 'string' )) {
+
+      fields = [ fields ];
+   };
+
+   if( ! fields || ! Array.isArray( fields )){
+
+         throw new ModuleError({
+
+            message: `Bad 'field' parameter please provide string or [string], provided: ${ typeof fields }`,
+            code: 'NOT_VALID_FIELDS',
+         });
+   };
+
+   if( ! params || ( getClass( params ) !== 'object' )){
+
+      throw new ModuleError({
+
+         message: `Bad 'params' please provide object, provided: ${ getClass( fields )}`,
+         code: 'NOT_VALID_PARAMS',
+      });
+   };
+
+   const { transform, from, to, content, } = params;
+
+   if( fields.includes( 'from' )){
+
+      if( ! from ){
+
+         throw new ModuleError({ message: `Please provide 'from' path, provided: ${ from }`, code: 'EMPTY_FROM', });
+      }
+
+      if( typeof from !== 'string' ){
+
+         throw new ModuleError({ message: `Parameter 'from' must to be a string, provided: ${ typeof from }`, code: 'NOT_VALID_FROM', });
+      };
+   };
+
+   if( fields.includes( 'to' )){
+
+      if(! to ){
+
+         throw new ModuleError({ message: `Please provide 'to' path, provided: ${ from }`, code: 'EMPTY_TO', });
+      };
+
+      if( typeof to !== 'string' ){
+
+         throw new ModuleError({ message: `Parameter 'to' must to be a string, provided: ${ typeof to }`, code: 'NOT_VALID_TO', });
+      };
+   };
+
+   if( fields.includes( 'content' )){
+
+      if( ! content ){
+
+         throw new ModuleError({
+
+            message: `Please provide 'content' string, provided: ${ content }`,
+            code: 'EMPTY_CONTENT',
+         });
+      }
+
+      if( typeof content !== 'string' ){
+
+         throw new ModuleError({
+
+            message: `Parameter 'content' must to be a string, provided: ${ typeof content }`,
+            code: 'NOT_VALID_CONTENT',
+         });
+      };
+   };
+
+   if( fields.includes( 'transform' )){
+
+      if( ! transform ){
+
+         throw new ModuleError({
+
+            message: `Please provide 'transform' option, provided: ${ transform }`,
+            code: 'EMPTY_TRANSFORM',
+         });
+      };
+
+      if( typeof transform !== 'object' ){
+
+         throw new ModuleError({
+
+            message: `Parameter 'transform' must to be object or array, provided: ${ typeof transform }`,
+            code: 'NOT_VALID_TRANSFORM',
+         });
+      };
+
+      if( ! Array.isArray( transform )){
+
+         const emptyProp = ( ! transform.find || ! transform.replace );
+
+         if( emptyProp ){
+
+            throw new ModuleError({
+
+               message: `Transform object must contain 'find' and 'replace' properties, provided: ${ transform }`,
+               code: 'NOT_VALID_FIND_REPLACE',
+            });
+         };
+
+         const badType = typeof transform.find !== 'string' && ! ( transform.find instanceof RegExp ) || typeof transform.replace !== 'string';
+
+         if( badType ){
+
+            throw new ModuleError({
+
+               message: `Bad transform options 'find' must be string or regex and 'replace' must be a string, provided: ${ transform }`,
+               code: 'NOT_VALID_FIND_REPLACE',
+            });
+         };
+      };
+
+      if( Array.isArray( transform )){
+
+         const emptyProp = ! transform.length || transform.find( v => ! v || ! v.find || ! v.replace );
+
+         if( emptyProp ){
+
+            throw new ModuleError({
+
+               message: `Transform array must contain objects with 'find' and 'replace' properties, provided: ${ transform.find( v => ! v.find || ! v.replace )}`,
+               code: 'NOT_VALID_FIND_REPLACE',
+            });
+         };
+
+         const badType = transform.find(
+
+            v => typeof v.find !== 'string' && ! ( v.find instanceof RegExp ) || typeof v.replace !== 'string'
+         );
+
+         if( badType ){
+
+            throw new ModuleError({
+
+               message: `Bad transform options 'find' must be string or regex and 'replace' must be a string, provided: ${ transform.find(
+
+               v => typeof v.find !== 'string' && ! ( v.find instanceof RegExp ) || typeof v.replace !== 'string'
+            )}`,
+               code: 'NOT_VALID_FIND_REPLACE',
+            });
+         };
+      };
+   };
 };
 
 module.exports = {
@@ -387,4 +468,5 @@ module.exports = {
    copyPath,
    contentTransform,
    copyFileTransform,
+   checkParams,
 };
