@@ -16,7 +16,6 @@ const fs = require( 'fs' ),
 
 /**
  * Copy path
- * TODO: copy with content transform
  * TODO: log and dry
  * @param {object} params
  * @param {string} params.from
@@ -44,7 +43,7 @@ async function copyPath( params = {}){
          params,
       );
 
-      const { from, to, filter, force, log, dry, } = params;
+      const { from, to, filter, force, transform, log, dry, } = params;
 
       switch( true ){
 
@@ -115,7 +114,7 @@ async function copyPath( params = {}){
          case fromIsFile && toIsFile && force:
 
             await unlink( to );
-            await copyFile( from, to );
+            await copyFileTransform({ from, to, transform });
 
             break;
 
@@ -128,7 +127,7 @@ async function copyPath( params = {}){
                throw new ModuleError({ message: `Destination already exists: ${ toPath }`, code: 'DEST_EXISTS', });
             };
 
-            await copyFile( from, toPath );
+            await copyFileTransform({ from, to: toPath, transform });
 
             break;
          };
@@ -151,14 +150,14 @@ async function copyPath( params = {}){
                };
             };
 
-            await copyFile( from, toPath );
+            await copyFileTransform({ from, to: toPath, transform });
 
             break;
          };
 
          case fromIsFile && ! toExists && ! toHasLastSlash:
 
-            await copyFile( from, to );
+            await copyFileTransform({ from, to, transform });
 
             break;
 
@@ -166,7 +165,7 @@ async function copyPath( params = {}){
 
             const toPath = path.resolve( `${ to }/${ path.basename( from )}` );
             await mkdir( to, { recursive: true });
-            await copyFile( from, toPath );
+            await copyFileTransform({ from, to: toPath, transform });
 
             break;
          };
