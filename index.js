@@ -34,7 +34,15 @@ async function copyPath( params = {}){
 
    try {
 
-      checkParams([ 'from', 'to', 'transform', ], params );
+      checkParams({
+
+         from:      { empty: 1, type: 1, },
+         to:        { empty: 1, type: 1, },
+         transform: { empty: 0, type: 1, },
+      },
+
+         params,
+      );
 
       const { from, to, filter, force, log, dry, } = params;
 
@@ -242,7 +250,14 @@ function contentTransform( params ){
 
    try {
 
-      checkParams([ 'content', 'transform', ], params );
+      checkParams({
+
+         content:   { empty: 1, type: 1, },
+         transform: { empty: 1, type: 1, },
+      },
+
+         params,
+      );
 
       const { content, transform, } = params;
 
@@ -289,7 +304,15 @@ function contentTransform( params ){
  **/
 async function copyFileTransform( params ){
 
-   checkParams([ 'from', 'to', 'transform', ], params );
+   checkParams({
+
+      from:      { empty: 1, type: 1, },
+      to:        { empty: 1, type: 1, },
+      transform: { empty: 0, type: 1, },
+   },
+
+      params
+   );
 
    const { from, to, transform } = params;
 
@@ -313,19 +336,46 @@ async function copyFileTransform( params ){
  **/
 function checkParams( fields, params ){
 
-   if( fields && ( typeof fields === 'string' )) {
+   /* check types */
+   const checks = [
 
-      fields = [ fields ];
-   };
+      'empty',
+      'type',
+   ];
 
-   if( ! fields || ! Array.isArray( fields )){
+   if( ! fields || ( getClass( fields ) !== 'object' )){
 
          throw new ModuleError({
 
-            message: `Bad 'field' parameter please provide string or [string], provided: ${ typeof fields }`,
+            message: `Bad 'fields' parameter please provide object, provided: ${ getClass( fields )}`,
             code: 'NOT_VALID_FIELDS',
          });
    };
+
+   /* check fields parameter */
+   Object.keys( fields ).find( v => {
+
+      if( getClass( fields[ v ]) !== 'object' ){
+
+         throw new ModuleError({
+
+            message: `Parameter 'fields' contain bad option, please provide object with allowed checks, provided: ${ fields[ v ]}`,
+            code: 'NOT_VALID_FIELDS_VALUES',
+         });
+      }
+      else {
+
+         const keys = Object.keys( fields[ v ]);
+         if( keys.find( v => ! checks.includes( v ))){
+
+            throw new ModuleError({
+
+               message: `'fields' contain option with bad check name, please provide allowed checks, provided: ${ fields[ v ]}`,
+               code: 'NOT_VALID_FIELDS_CHECK',
+            });
+         };
+      };
+   });
 
    if( ! params || ( getClass( params ) !== 'object' )){
 
@@ -338,35 +388,35 @@ function checkParams( fields, params ){
 
    const { transform, from, to, content, } = params;
 
-   if( fields.includes( 'from' )){
+   if( fields.from ){
 
-      if( ! from ){
+      if( fields.from.empty && ! from ){
 
          throw new ModuleError({ message: `Please provide 'from' path, provided: ${ from }`, code: 'EMPTY_FROM', });
       }
 
-      if( typeof from !== 'string' ){
+      if( fields.from.type && from && ( typeof from !== 'string' )){
 
          throw new ModuleError({ message: `Parameter 'from' must to be a string, provided: ${ typeof from }`, code: 'NOT_VALID_FROM', });
       };
    };
 
-   if( fields.includes( 'to' )){
+   if( fields.to ){
 
-      if(! to ){
+      if( fields.to.empty && ! to ){
 
          throw new ModuleError({ message: `Please provide 'to' path, provided: ${ from }`, code: 'EMPTY_TO', });
       };
 
-      if( typeof to !== 'string' ){
+      if( fields.to.type && to && ( typeof to !== 'string' )){
 
          throw new ModuleError({ message: `Parameter 'to' must to be a string, provided: ${ typeof to }`, code: 'NOT_VALID_TO', });
       };
    };
 
-   if( fields.includes( 'content' )){
+   if( fields.content ){
 
-      if( ! content ){
+      if( fields.content.empty && ! content ){
 
          throw new ModuleError({
 
@@ -375,7 +425,7 @@ function checkParams( fields, params ){
          });
       }
 
-      if( typeof content !== 'string' ){
+      if( fields.content.type && content && ( typeof content !== 'string' )){
 
          throw new ModuleError({
 
@@ -385,9 +435,9 @@ function checkParams( fields, params ){
       };
    };
 
-   if( fields.includes( 'transform' )){
+   if( fields.transform ){
 
-      if( ! transform ){
+      if( fields.transform.empty && ! transform ){
 
          throw new ModuleError({
 
@@ -396,68 +446,71 @@ function checkParams( fields, params ){
          });
       };
 
-      if( typeof transform !== 'object' ){
+      if( fields.transform.type && transform ){
 
-         throw new ModuleError({
-
-            message: `Parameter 'transform' must to be object or array, provided: ${ typeof transform }`,
-            code: 'NOT_VALID_TRANSFORM',
-         });
-      };
-
-      if( ! Array.isArray( transform )){
-
-         const emptyProp = ( ! transform.find || ! transform.replace );
-
-         if( emptyProp ){
+         if( typeof transform !== 'object' ){
 
             throw new ModuleError({
 
-               message: `Transform object must contain 'find' and 'replace' properties, provided: ${ transform }`,
-               code: 'NOT_VALID_FIND_REPLACE',
+               message: `Parameter 'transform' must to be object or array, provided: ${ typeof transform }`,
+               code: 'NOT_VALID_TRANSFORM',
             });
          };
 
-         const badType = typeof transform.find !== 'string' && ! ( transform.find instanceof RegExp ) || typeof transform.replace !== 'string';
+         if( ! Array.isArray( transform )){
 
-         if( badType ){
+            const emptyProp = ( ! transform.find || ! transform.replace );
 
-            throw new ModuleError({
+            if( emptyProp ){
 
-               message: `Bad transform options 'find' must be string or regex and 'replace' must be a string, provided: ${ transform }`,
-               code: 'NOT_VALID_FIND_REPLACE',
-            });
+               throw new ModuleError({
+
+                  message: `Transform object must contain 'find' and 'replace' properties, provided: ${ transform }`,
+                  code: 'NOT_VALID_FIND_REPLACE',
+               });
+            };
+
+            const badType = typeof transform.find !== 'string' && ! ( transform.find instanceof RegExp ) || typeof transform.replace !== 'string';
+
+            if( badType ){
+
+               throw new ModuleError({
+
+                  message: `Bad transform options 'find' must be string or regex and 'replace' must be a string, provided: ${ transform }`,
+                  code: 'NOT_VALID_FIND_REPLACE',
+               });
+            };
          };
-      };
 
-      if( Array.isArray( transform )){
+         if( Array.isArray( transform )){
 
-         const emptyProp = ! transform.length || transform.find( v => ! v || ! v.find || ! v.replace );
+            const emptyProp = ! transform.length || transform.find( v => ! v || ! v.find || ! v.replace );
 
-         if( emptyProp ){
+            if( emptyProp ){
 
-            throw new ModuleError({
+               throw new ModuleError({
 
-               message: `Transform array must contain objects with 'find' and 'replace' properties, provided: ${ transform.find( v => ! v.find || ! v.replace )}`,
-               code: 'NOT_VALID_FIND_REPLACE',
-            });
-         };
+                  message: `Transform array must contain objects with 'find' and 'replace' properties, provided: ${ transform.find( v => ! v.find || ! v.replace )}`,
+                  code: 'NOT_VALID_FIND_REPLACE',
+               });
+            };
 
-         const badType = transform.find(
+            const badType = transform.find(
 
-            v => typeof v.find !== 'string' && ! ( v.find instanceof RegExp ) || typeof v.replace !== 'string'
-         );
+               v => typeof v.find !== 'string' && ! ( v.find instanceof RegExp ) || typeof v.replace !== 'string'
+            );
 
-         if( badType ){
+            if( badType ){
 
-            throw new ModuleError({
+               throw new ModuleError({
 
-               message: `Bad transform options 'find' must be string or regex and 'replace' must be a string, provided: ${ transform.find(
+                  message: `Bad transform options 'find' must be string or regex and 'replace' must be a string, provided: ${ transform.find(
 
                v => typeof v.find !== 'string' && ! ( v.find instanceof RegExp ) || typeof v.replace !== 'string'
             )}`,
-               code: 'NOT_VALID_FIND_REPLACE',
-            });
+                  code: 'NOT_VALID_FIND_REPLACE',
+               });
+            };
          };
       };
    };

@@ -11,7 +11,7 @@ mod.__set__( 'log', { // disable logger
    red: _=>_,
 });
 
-test( `'fields' must to be string or array`, t => {
+test( `'fields' must to be object`, t => {
 
    const fields = 1;
 
@@ -19,9 +19,51 @@ test( `'fields' must to be string or array`, t => {
    t.deepEqual( error.code, 'NOT_VALID_FIELDS' );
 });
 
+test( `'fields' values must to be objects`, t => {
+
+   const fields = {
+
+      field: 1,
+   };
+
+   let error = t.throws( _=> checkParams( fields ));
+   t.deepEqual( error.code, 'NOT_VALID_FIELDS_VALUES' );
+
+   fields.field = {};
+
+   error = t.throws( _=> checkParams( fields ));
+   t.not( error.code, 'NOT_VALID_FIELDS_VALUES' );
+});
+
+test( `'fields' values contains right checks`, t => {
+
+   const fields = {
+
+      field: {
+
+         badName: true
+      },
+   };
+
+   let error = t.throws( _=> checkParams( fields ));
+   t.deepEqual( error.code, 'NOT_VALID_FIELDS_CHECK' );
+
+   delete fields.field.badName;
+   fields.field.empty = true;
+
+   error = t.throws( _=> checkParams( fields ));
+   t.not( error.code, 'NOT_VALID_FIELDS_CHECK' );
+
+   fields.field.empty = false;
+   fields.field.type = true;
+
+   error = t.throws( _=> checkParams( fields ));
+   t.not( error.code, 'NOT_VALID_FIELDS_CHECK' );
+});
+
 test( `'params' must to be object`, t => {
 
-   const fields = 'test',
+   const fields = {},
       params = 1;
 
    const error = t.throws( _=> checkParams( fields, params ));
@@ -30,7 +72,13 @@ test( `'params' must to be object`, t => {
 
 test( `params should contan 'from' parameter`, t => {
 
-   const fields = 'from',
+   const fields = {
+
+         from: {
+
+            empty: true,
+         }
+      },
       params = {};
 
    const error = t.throws( _=> checkParams( fields, params ));
@@ -39,7 +87,14 @@ test( `params should contan 'from' parameter`, t => {
 
 test( `parameter 'from' must to be a string`, t => {
 
-   const fields = 'from',
+   const fields = {
+
+         from: {
+
+            empty: true,
+            type: true,
+         }
+      },
       params = {
 
          from: [ 'data' ],
@@ -51,7 +106,13 @@ test( `parameter 'from' must to be a string`, t => {
 
 test( `params should contan 'to' parameter`, t => {
 
-   const fields = 'to',
+   const fields = {
+
+         to: {
+
+            empty: true,
+         }
+      },
       params = {
 
          from: '/tmp',
@@ -63,7 +124,14 @@ test( `params should contan 'to' parameter`, t => {
 
 test( `parameter 'to' must to be a string`, t => {
 
-   const fields = [ 'from', 'to', ],
+   const fields = {
+
+         to: {
+
+            empty: true,
+            type: true,
+         }
+      },
       params = {
 
          from: 'data',
@@ -76,7 +144,13 @@ test( `parameter 'to' must to be a string`, t => {
 
 test( `params should contan 'content' parameter`, t => {
 
-   const fields = 'content',
+   const fields = {
+
+         content: {
+
+            empty: true,
+         }
+      },
       params = {};
 
    const error = t.throws( _=> checkParams( fields, params ));
@@ -85,7 +159,14 @@ test( `params should contan 'content' parameter`, t => {
 
 test( `parameter 'content' must to be a string`, t => {
 
-   const fields = 'content',
+   const fields = {
+
+         content: {
+
+            empty: true,
+            type: true,
+         }
+      },
       params = {
 
          content: 1,
@@ -97,7 +178,18 @@ test( `parameter 'content' must to be a string`, t => {
 
 test( `params should contan 'transform' parameter`, t => {
 
-   const fields = [ 'content', 'transform', ],
+   const fields = {
+
+         content: {
+
+            empty: true,
+            type: true,
+         },
+         transform: {
+
+            empty: true,
+         },
+      },
       params = {
 
          content: 'text tex t ext ex test es text'
@@ -109,7 +201,14 @@ test( `params should contan 'transform' parameter`, t => {
 
 test( `parameter 'transform' must to be a object or array`, t => {
 
-   const fields = 'transform',
+   const fields = {
+
+         transform: {
+
+            empty: true,
+            type: true,
+         },
+      },
       params = {
 
          transform: 1
@@ -121,7 +220,13 @@ test( `parameter 'transform' must to be a object or array`, t => {
 
 test( `'transform' object must contain 'find' and 'replace' properties`, t => {
 
-   const fields = 'transform',
+   const fields = {
+
+         transform: {
+
+            type: true,
+         },
+      },
       params = {
 
          transform: {}
@@ -133,7 +238,13 @@ test( `'transform' object must contain 'find' and 'replace' properties`, t => {
 
 test( `'transform' object parameters type`, t => {
 
-   const fields = 'transform',
+   const fields = {
+
+         transform: {
+
+            type: true,
+         },
+      },
       params = {
 
          transform: {
@@ -162,7 +273,13 @@ test( `'transform' object parameters type`, t => {
 
 test( `'transform' array must contain objects with 'find' and 'replace' properties`, t => {
 
-   const fields = 'transform',
+   const fields = {
+
+         transform: {
+
+            type: true,
+         },
+      },
       params = {
 
          transform: [],
@@ -174,7 +291,13 @@ test( `'transform' array must contain objects with 'find' and 'replace' properti
 
 test( `'transform' array parameters type`, t => {
 
-   const fields = 'transform',
+   const fields = {
+
+         transform: {
+
+            type: true,
+         },
+      },
       params = {
 
          transform: [{
