@@ -79,7 +79,7 @@ async function copyPath( params = {}){
       let fromExists = await exists( from ),
          fromIsDir,
          fromIsFile,
-         toExists   = await exists( to ),
+         toExists = await exists( to ),
          toIsDir,
          toIsFile,
          toHasLastSlash = ( typeof to === 'string' ) && ( to.slice( -1 ) === '/' );
@@ -238,7 +238,6 @@ async function copyPath( params = {}){
 
 /**
  * Content transform
- * TODO: log option
  * @param {object} params
  * @param {string} params.content
  * @param {object|array} params.transform
@@ -300,6 +299,7 @@ function contentTransform( params ){
  * @param {object|array} params.transform
  * @param {string|regex} params.transform.find
  * @param {string} params.transform.replace
+ * @param {string} params.encoding
  * @return {undefined}
  **/
 async function copyFileTransform( params ){
@@ -314,17 +314,23 @@ async function copyFileTransform( params ){
       params
    );
 
-   const { from, to, transform } = params;
+   const {
+      from,
+      to,
+      transform,
+      encoding = 'utf8',
+   } = params;
 
-   // if( transform ) {
+   if( transform ) {
 
-   //    let content = readFile(  );
-   //    writeFile
-   // }
-   // else {
+      let content = await readFile( from, encoding );
+      content = contentTransform({ content, transform });
+      await writeFile( to, content, encoding );
+   }
+   else {
 
-   //    await copyFile( from, to );
-   // };
+      await copyFile( from, to );
+   };
 
 };
 

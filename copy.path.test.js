@@ -66,7 +66,6 @@ test( `error if 'from' path not exists`, async t => {
    t.deepEqual( copyFile.callCount, 0 );
 });
 
-
 test( `copy file into exists file whithout force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
@@ -92,7 +91,6 @@ test( `copy file into exists file whithout force`, async t => {
    t.deepEqual( copyFile.callCount, 0 );
 });
 
-
 test( `copy file into exists file whith force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
@@ -116,7 +114,6 @@ test( `copy file into exists file whith force`, async t => {
    t.deepEqual( shell.cat( to ).stdout, 'file_1 content' );
    t.deepEqual( copyFile.callCount, 1 );
 });
-
 
 test( `copy file into exists dir, into exist place, without force`, async t => {
 
@@ -142,7 +139,6 @@ test( `copy file into exists dir, into exist place, without force`, async t => {
    t.deepEqual( copyFile.callCount, 0 );
 });
 
-
 test( `copy file into exists clear dir`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
@@ -165,7 +161,6 @@ test( `copy file into exists clear dir`, async t => {
    t.deepEqual( shell.cat( path.resolve( `${ to }/file_1` )).stdout, 'file_1 content' );
    t.deepEqual( copyFile.callCount, 1 );
 });
-
 
 test( `copy file into exists dir, into exist place taken with file, with force`, async t => {
 
@@ -193,7 +188,6 @@ test( `copy file into exists dir, into exist place taken with file, with force`,
    t.deepEqual( copyFile.callCount, 1 );
 });
 
-
 test( `copy file into exists dir, into exist place taken with dir, with force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
@@ -219,7 +213,6 @@ test( `copy file into exists dir, into exist place taken with dir, with force`, 
    t.deepEqual( copyFile.callCount, 1 );
 });
 
-
 test( `copy file into not exists dir, without slash at end`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/file_1` ),
@@ -241,7 +234,6 @@ test( `copy file into not exists dir, without slash at end`, async t => {
    t.deepEqual( shell.cat( to ).stdout, 'file_1 content' );
    t.deepEqual( copyFile.callCount, 1 );
 });
-
 
 test( `copy file into not exists dir, with slash at end`, async t => {
 
@@ -267,7 +259,6 @@ test( `copy file into not exists dir, with slash at end`, async t => {
    t.deepEqual( shell.cat( toFile ).stdout, 'file_1 content' );
    t.deepEqual( copyFile.callCount, 1 );
 });
-
 
 test( `copy dir into into exists file, without force`, async t => {
 
@@ -298,7 +289,6 @@ test( `copy dir into into exists file, without force`, async t => {
    t.deepEqual( copyFile.callCount, 0 );
 });
 
-
 test( `copy dir into exists file, with force`, async t => {
 
    const from = path.resolve( `${ TMP }/test-from/test_1/` ),
@@ -326,7 +316,6 @@ test( `copy dir into exists file, with force`, async t => {
    t.deepEqual( shell.cat( toFile ).stdout, 'file_1 content' );
    t.deepEqual( copyFile.callCount, 1 );
 });
-
 
 test( `copy dir into exists dir`, async t => {
 
@@ -390,7 +379,6 @@ test( `copy dir into exists dir`, async t => {
    t.deepEqual( copyFile.callCount, 3 );
 });
 
-
 test( `copy dir into not exists dir`, async t => {
 
    const paths = [
@@ -450,7 +438,6 @@ test( `copy dir into not exists dir`, async t => {
    t.deepEqual( copyFile.callCount, 3 );
 });
 
-
 test( `copy dir with regex filter`, async t => {
 
    const paths = [
@@ -500,7 +487,6 @@ test( `copy dir with regex filter`, async t => {
    }
    t.deepEqual( copyFile.callCount, 2 );
 });
-
 
 test( `copy dir with array of regex filters`, async t => {
 
@@ -558,7 +544,6 @@ test( `copy dir with array of regex filters`, async t => {
    t.deepEqual( copyFile.callCount, 2 );
 });
 
-
 test( `copy dir with function filter`, async t => {
 
    const paths = [
@@ -609,7 +594,6 @@ test( `copy dir with function filter`, async t => {
    }
    t.deepEqual( copyFile.callCount, 2 );
 });
-
 
 test( `copy file whith relative path`, async t => {
 
