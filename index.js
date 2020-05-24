@@ -16,7 +16,6 @@ const fs = require( 'fs' ),
 
 /**
  * Copy path
- * TODO: log and dry
  * @param {object} params
  * @param {string} params.from
  * @param {string} params.to
@@ -25,8 +24,7 @@ const fs = require( 'fs' ),
  * @param {object|array} params.transform
  * @param {string|regex} params.transform.find
  * @param {string} params.transform.replace
- * @param {boolean} params.log
- * @param {boolean} params.dry - do not copy files (for testing)
+ * @param {boolean} params.logging - copying log
  * @return {undefined} Return removed paths
  **/
 async function copyPath( params = {}){
@@ -43,7 +41,7 @@ async function copyPath( params = {}){
          params,
       );
 
-      const { from, to, filter, force, transform, log, dry, } = params;
+      const { from, to, filter, force, transform, logging, } = params;
 
       switch( true ){
 
@@ -114,7 +112,8 @@ async function copyPath( params = {}){
          case fromIsFile && toIsFile && force:
 
             await unlink( to );
-            await copyFileTransform({ from, to, transform });
+            logging && log.blue( `unlink ${ to }` );
+            await copyFileTransform({ from, to, transform, logging, });
 
             break;
 
@@ -127,7 +126,7 @@ async function copyPath( params = {}){
                throw new ModuleError({ message: `Destination already exists: ${ toPath }`, code: 'DEST_EXISTS', });
             };
 
-            await copyFileTransform({ from, to: toPath, transform });
+            await copyFileTransform({ from, to: toPath, transform, logging, });
 
             break;
          };
@@ -143,21 +142,23 @@ async function copyPath( params = {}){
                if( toPathStat.isDirectory()){
 
                   await rmdir( toPath );
+                  logging && log.blue( `rmdir ${ toPath }` );
                }
                else if( toPathStat.isFile()){
 
                   await unlink( toPath );
+                  logging && log.blue( `unlink ${ toPath }` );
                };
             };
 
-            await copyFileTransform({ from, to: toPath, transform });
+            await copyFileTransform({ from, to: toPath, transform, logging, });
 
             break;
          };
 
          case fromIsFile && ! toExists && ! toHasLastSlash:
 
-            await copyFileTransform({ from, to, transform });
+            await copyFileTransform({ from, to, transform, logging, });
 
             break;
 
@@ -165,7 +166,8 @@ async function copyPath( params = {}){
 
             const toPath = path.resolve( `${ to }/${ path.basename( from )}` );
             await mkdir( to, { recursive: true });
-            await copyFileTransform({ from, to: toPath, transform });
+            logging && log.blue( `mkdir ${ to }` );
+            await copyFileTransform({ from, to: toPath, transform, logging, });
 
             break;
          };
@@ -179,7 +181,9 @@ async function copyPath( params = {}){
          case fromIsDir && toIsFile && force: {
 
             await unlink( to );
+            logging && log.blue( `unlink ${ to }` );
             await mkdir( to, { recursive: true });
+            logging && log.blue( `mkdir ${ to }` );
 
             const paths = ( await readdir( from ))
                .map( v => path.resolve( `${ from }/${ v }` ));
@@ -222,6 +226,7 @@ async function copyPath( params = {}){
          case fromIsDir && ! toExists:
 
             await mkdir( to, { recursive: true });
+            logging && log.blue( `mkdir ${ to }` );
             await copyPath( params );
 
             break;
@@ -299,6 +304,7 @@ function contentTransform( params ){
  * @param {string|regex} params.transform.find
  * @param {string} params.transform.replace
  * @param {string} params.encoding
+ * @param {boolean} params.logging - copying log
  * @return {undefined}
  **/
 async function copyFileTransform( params ){
@@ -314,10 +320,12 @@ async function copyFileTransform( params ){
    );
 
    const {
+
       from,
       to,
       transform,
       encoding = 'utf8',
+      logging,
    } = params;
 
    if( transform ) {
@@ -331,6 +339,7 @@ async function copyFileTransform( params ){
       await copyFile( from, to );
    };
 
+   logging && log.blue( `copy from: ${ from }, to: ${ to }` );
 };
 
 /**
