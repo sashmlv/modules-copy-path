@@ -17,13 +17,13 @@ const fs = require( 'fs' ),
 /**
  * Copy path
  * @param {object} params
- * @param {string} params.from
- * @param {string} params.to
+ * @param {string} params.src
+ * @param {string} params.dest
  * @param {regex|array|function} params.filter - filter for copying paths
  * @param {boolean} params.force - overwrite files
- * @param {object|array} params.transform
- * @param {string|regex} params.transform.find
- * @param {string} params.transform.replace
+ * @param {object|array} params.change
+ * @param {string|regex} params.change.find
+ * @param {string} params.change.replace
  * @param {boolean} params.logging - copying log
  * @return {undefined} Return removed paths
  **/
@@ -33,21 +33,21 @@ async function copyPath( params = {}){
 
       checkParams({
 
-         from:      { empty: 1, type: 1, },
-         to:        { empty: 1, type: 1, },
-         transform: { empty: 0, type: 1, },
+         src: { empty: 1, type: 1, },
+         dest: { empty: 1, type: 1, },
+         change: { empty: 0, type: 1, },
       },
 
          params,
       );
 
-      const { from, to, filter, force, transform, logging, } = params;
+      const { src, dest, filter, force, change, logging, } = params;
 
       switch( true ){
 
          case filter instanceof RegExp:
 
-            if( ! filter.test( from )){
+            if( ! filter.test( src )){
 
                return;
             }
@@ -56,7 +56,7 @@ async function copyPath( params = {}){
 
          case Array.isArray( filter ):
 
-            if( ! filter.find( f => f.test( from ))){
+            if( ! filter.find( f => f.test( src ))){
 
                return;
             };
@@ -65,7 +65,7 @@ async function copyPath( params = {}){
 
          case typeof filter === 'function':
 
-            if( ! filter( from )){
+            if( ! filter( src )){
 
                return;
             }
@@ -73,160 +73,160 @@ async function copyPath( params = {}){
             break;
       };
 
-      let fromExists = await exists( from ),
-         fromIsDir,
-         fromIsFile,
-         toExists = await exists( to ),
-         toIsDir,
-         toIsFile,
-         toHasLastSlash = ( typeof to === 'string' ) && ( to.slice( -1 ) === '/' );
+      let srcExists = await exists( src ),
+         srcIsDir,
+         srcIsFile,
+         destExists = await exists( dest ),
+         destIsDir,
+         destIsFile,
+         destHasLastSlash = ( typeof dest === 'string' ) && ( dest.slice( -1 ) === '/' );
 
-      if( fromExists ){
+      if( srcExists ){
 
-         const fromStat = await lstat( from );
-         fromIsDir  = fromStat.isDirectory();
-         fromIsFile = fromStat.isFile();
+         const srcStat = await lstat( src );
+         srcIsDir  = srcStat.isDirectory();
+         srcIsFile = srcStat.isFile();
       }
 
-      if( toExists ){
+      if( destExists ){
 
-         const toStat = await lstat( to );
-         toIsDir  = toStat.isDirectory();
-         toIsFile = toStat.isFile();
+         const destStat = await lstat( dest );
+         destIsDir  = destStat.isDirectory();
+         destIsFile = destStat.isFile();
       }
 
       switch ( true ){
 
-         case ! fromExists:
+         case ! srcExists:
 
-            throw new ModuleError({ message: `Path 'from' not exists: ${ from }`, code: 'FROM_NOT_EXISTS', });
-
-            break;
-
-         case fromIsFile && toIsFile && ! force:
-
-            throw new ModuleError({ message: `Destination file already exists: ${ to }`, code: 'DEST_FILE_EXISTS', });
+            throw new ModuleError({ message: `Path 'src' not exists: ${ src }`, code: 'SRC_NOT_EXISTS', });
 
             break;
 
-         case fromIsFile && toIsFile && force:
+         case srcIsFile && destIsFile && ! force:
 
-            await unlink( to );
-            logging && log.blue( `unlink ${ to }` );
-            await copyFileTransform({ from, to, transform, logging, });
+            throw new ModuleError({ message: `Destination file already exists: ${ dest }`, code: 'DEST_FILE_EXISTS', });
 
             break;
 
-         case fromIsFile && toIsDir && ! force: {
+         case srcIsFile && destIsFile && force:
 
-            const toPath = path.resolve( `${ to }/${ path.basename( from )}` );
+            await unlink( dest );
+            logging && log.blue( `unlink ${ dest }` );
+            await copyFileChange({ src, dest, change, logging, });
 
-            if( await exists( toPath )){
+            break;
 
-               throw new ModuleError({ message: `Destination already exists: ${ toPath }`, code: 'DEST_EXISTS', });
+         case srcIsFile && destIsDir && ! force: {
+
+            const destPath = path.resolve( `${ dest }/${ path.basename( src )}` );
+
+            if( await exists( destPath )){
+
+               throw new ModuleError({ message: `Destination already exists: ${ destPath }`, code: 'DEST_EXISTS', });
             };
 
-            await copyFileTransform({ from, to: toPath, transform, logging, });
+            await copyFileChange({ src, dest: destPath, change, logging, });
 
             break;
          };
 
-         case fromIsFile && toIsDir && force: {
+         case srcIsFile && destIsDir && force: {
 
-            const toPath = path.resolve( `${ to }/${ path.basename( from )}` );
+            const destPath = path.resolve( `${ dest }/${ path.basename( src )}` );
 
-            if( await exists( toPath )){
+            if( await exists( destPath )){
 
-               const toPathStat = await lstat( toPath );
+               const destPathStat = await lstat( destPath );
 
-               if( toPathStat.isDirectory()){
+               if( destPathStat.isDirectory()){
 
-                  await rmdir( toPath );
-                  logging && log.blue( `rmdir ${ toPath }` );
+                  await rmdir( destPath );
+                  logging && log.blue( `rmdir ${ destPath }` );
                }
-               else if( toPathStat.isFile()){
+               else if( destPathStat.isFile()){
 
-                  await unlink( toPath );
-                  logging && log.blue( `unlink ${ toPath }` );
+                  await unlink( destPath );
+                  logging && log.blue( `unlink ${ destPath }` );
                };
             };
 
-            await copyFileTransform({ from, to: toPath, transform, logging, });
+            await copyFileChange({ src, dest: destPath, change, logging, });
 
             break;
          };
 
-         case fromIsFile && ! toExists && ! toHasLastSlash:
+         case srcIsFile && ! destExists && ! destHasLastSlash:
 
-            await copyFileTransform({ from, to, transform, logging, });
+            await copyFileChange({ src, dest, change, logging, });
 
             break;
 
-         case fromIsFile && ! toExists && toHasLastSlash: {
+         case srcIsFile && ! destExists && destHasLastSlash: {
 
-            const toPath = path.resolve( `${ to }/${ path.basename( from )}` );
-            await mkdir( to, { recursive: true });
-            logging && log.blue( `mkdir ${ to }` );
-            await copyFileTransform({ from, to: toPath, transform, logging, });
+            const destPath = path.resolve( `${ dest }/${ path.basename( src )}` );
+            await mkdir( dest, { recursive: true });
+            logging && log.blue( `mkdir ${ dest }` );
+            await copyFileChange({ src, dest: destPath, change, logging, });
 
             break;
          };
 
-         case fromIsDir && toIsFile && ! force:
+         case srcIsDir && destIsFile && ! force:
 
-            throw new ModuleError({ message: `Destination already exists: ${ to }`, code: 'DEST_EXISTS', });
+            throw new ModuleError({ message: `Destination already exists: ${ dest }`, code: 'DEST_EXISTS', });
 
             break;
 
-         case fromIsDir && toIsFile && force: {
+         case srcIsDir && destIsFile && force: {
 
-            await unlink( to );
-            logging && log.blue( `unlink ${ to }` );
-            await mkdir( to, { recursive: true });
-            logging && log.blue( `mkdir ${ to }` );
+            await unlink( dest );
+            logging && log.blue( `unlink ${ dest }` );
+            await mkdir( dest, { recursive: true });
+            logging && log.blue( `mkdir ${ dest }` );
 
-            const paths = ( await readdir( from ))
-               .map( v => path.resolve( `${ from }/${ v }` ));
+            const paths = ( await readdir( src ))
+               .map( v => path.resolve( `${ src }/${ v }` ));
 
             for( let i = 0; i < paths.length; i++ ){
 
                await copyPath( Object.assign({}, params, {
 
-                  from: paths[ i ]
+                  src: paths[ i ]
                }));
             };
 
             break;
          };
 
-         case fromIsDir && toIsDir: {
+         case srcIsDir && destIsDir: {
 
-            const paths = ( await readdir( from ))
-               .map( v => path.resolve( `${ from }/${ v }` ));
+            const paths = ( await readdir( src ))
+               .map( v => path.resolve( `${ src }/${ v }` ));
 
             /* copy each path separately */
             for( let i = 0; i < paths.length; i++ ){
 
                const pathStat = await lstat( paths[ i ]),
-                  toPath = pathStat.isDirectory() ?
+                  destPath = pathStat.isDirectory() ?
 
                   /* for directory source add slash at end */
-                  `${path.resolve( `${ to }/${ path.basename( paths[ i ])}` )}${ path.sep }` :
-                  to;
+                  `${path.resolve( `${ dest }/${ path.basename( paths[ i ])}` )}${ path.sep }` :
+                  dest;
 
                await copyPath( Object.assign({}, params, {
 
-                  from: paths[ i ],
-                  to: toPath,
+                  src: paths[ i ],
+                  dest: destPath,
                }));
             };
 
             break;
          };
-         case fromIsDir && ! toExists:
+         case srcIsDir && ! destExists:
 
-            await mkdir( to, { recursive: true });
-            logging && log.blue( `mkdir ${ to }` );
+            await mkdir( dest, { recursive: true });
+            logging && log.blue( `mkdir ${ dest }` );
             await copyPath( params );
 
             break;
@@ -241,35 +241,35 @@ async function copyPath( params = {}){
 };
 
 /**
- * Content transform
+ * Content change
  * @param {object} params
  * @param {string} params.content
- * @param {object|array} params.transform
- * @param {string|regex} params.transform.find
- * @param {string} params.transform.replace
+ * @param {object|array} params.change
+ * @param {string|regex} params.change.find
+ * @param {string} params.change.replace
  * @return {string} Return changed content string
  **/
-function contentTransform( params ){
+function contentChange( params ){
 
    try {
 
       checkParams({
 
-         content:   { empty: 1, type: 1, },
-         transform: { empty: 1, type: 1, },
+         content: { empty: 1, type: 1, },
+         change: { empty: 1, type: 1, },
       },
 
          params,
       );
 
-      const { content, transform, } = params;
+      const { content, change, } = params;
 
       let result;
 
       /* replace */
-      if( ! Array.isArray( transform )){
+      if( ! Array.isArray( change )){
 
-         const { find, replace } = transform;
+         const { find, replace } = change;
 
          result = content.replace( find, replace );
       }
@@ -277,9 +277,9 @@ function contentTransform( params ){
 
          result = content;
 
-         for( let i = 0; i < transform.length; i++ ) {
+         for( let i = 0; i < change.length; i++ ) {
 
-            const { find, replace } = transform[ i ];
+            const { find, replace } = change[ i ];
 
             result = result.replace( find, replace );
          }
@@ -296,24 +296,24 @@ function contentTransform( params ){
 };
 
 /**
- * Copy file, optional content transform
+ * Copy file, optional content change
  * @param {object} params
- * @param {string} params.from
- * @param {string} params.to
- * @param {object|array} params.transform
- * @param {string|regex} params.transform.find
- * @param {string} params.transform.replace
+ * @param {string} params.src
+ * @param {string} params.dest
+ * @param {object|array} params.change
+ * @param {string|regex} params.change.find
+ * @param {string} params.change.replace
  * @param {string} params.encoding
  * @param {boolean} params.logging - copying log
  * @return {undefined}
  **/
-async function copyFileTransform( params ){
+async function copyFileChange( params ){
 
    checkParams({
 
-      from:      { empty: 1, type: 1, },
-      to:        { empty: 1, type: 1, },
-      transform: { empty: 0, type: 1, },
+      src: { empty: 1, type: 1, },
+      dest: { empty: 1, type: 1, },
+      change: { empty: 0, type: 1, },
    },
 
       params
@@ -321,25 +321,25 @@ async function copyFileTransform( params ){
 
    const {
 
-      from,
-      to,
-      transform,
+      src,
+      dest,
+      change,
       encoding = 'utf8',
       logging,
    } = params;
 
-   if( transform ) {
+   if( change ) {
 
-      let content = await readFile( from, encoding );
-      content = contentTransform({ content, transform });
-      await writeFile( to, content, encoding );
+      let content = await readFile( src, encoding );
+      content = contentChange({ content, change });
+      await writeFile( dest, content, encoding );
    }
    else {
 
-      await copyFile( from, to );
+      await copyFile( src, dest );
    };
 
-   logging && log.blue( `copy from: ${ from }, to: ${ to }` );
+   logging && log.blue( `copy src: ${ src }, dest: ${ dest }` );
 };
 
 /**
@@ -359,11 +359,11 @@ function checkParams( fields, params ){
 
    if( ! fields || ( getClass( fields ) !== 'object' )){
 
-         throw new ModuleError({
+      throw new ModuleError({
 
-            message: `Bad 'fields' parameter please provide object, provided: ${ getClass( fields )}`,
-            code: 'NOT_VALID_FIELDS',
-         });
+         message: `Bad 'fields' parameter please provide object, provided: ${ getClass( fields )}`,
+         code: 'NOT_VALID_FIELDS',
+      });
    };
 
    /* check fields parameter */
@@ -400,31 +400,31 @@ function checkParams( fields, params ){
       });
    };
 
-   const { transform, from, to, content, } = params;
+   const { change, src, dest, content, } = params;
 
-   if( fields.from ){
+   if( fields.src ){
 
-      if( fields.from.empty && ! from ){
+      if( fields.src.empty && ! src ){
 
-         throw new ModuleError({ message: `Please provide 'from' path, provided: ${ from }`, code: 'EMPTY_FROM', });
+         throw new ModuleError({ message: `Please provide 'src' path, provided: ${ src }`, code: 'EMPTY_SRC', });
       }
 
-      if( fields.from.type && from && ( typeof from !== 'string' )){
+      if( fields.src.type && src && ( typeof src !== 'string' )){
 
-         throw new ModuleError({ message: `Parameter 'from' must to be a string, provided: ${ typeof from }`, code: 'NOT_VALID_FROM', });
+         throw new ModuleError({ message: `Parameter 'src' must to be a string, provided: ${ typeof src }`, code: 'NOT_VALID_SRC', });
       };
    };
 
-   if( fields.to ){
+   if( fields.dest ){
 
-      if( fields.to.empty && ! to ){
+      if( fields.dest.empty && ! dest ){
 
-         throw new ModuleError({ message: `Please provide 'to' path, provided: ${ from }`, code: 'EMPTY_TO', });
+         throw new ModuleError({ message: `Please provide 'dest' path, provided: ${ src }`, code: 'EMPTY_DEST', });
       };
 
-      if( fields.to.type && to && ( typeof to !== 'string' )){
+      if( fields.dest.type && dest && ( typeof dest !== 'string' )){
 
-         throw new ModuleError({ message: `Parameter 'to' must to be a string, provided: ${ typeof to }`, code: 'NOT_VALID_TO', });
+         throw new ModuleError({ message: `Parameter 'dest' must to be a string, provided: ${ typeof dest }`, code: 'NOT_VALID_DEST', });
       };
    };
 
@@ -449,67 +449,67 @@ function checkParams( fields, params ){
       };
    };
 
-   if( fields.transform ){
+   if( fields.change ){
 
-      if( fields.transform.empty && ! transform ){
+      if( fields.change.empty && ! change ){
 
          throw new ModuleError({
 
-            message: `Please provide 'transform' option, provided: ${ transform }`,
-            code: 'EMPTY_TRANSFORM',
+            message: `Please provide 'change' option, provided: ${ change }`,
+            code: 'EMPTY_CHANGE',
          });
       };
 
-      if( fields.transform.type && transform ){
+      if( fields.change.type && change ){
 
-         if( typeof transform !== 'object' ){
+         if( typeof change !== 'object' ){
 
             throw new ModuleError({
 
-               message: `Parameter 'transform' must to be object or array, provided: ${ typeof transform }`,
-               code: 'NOT_VALID_TRANSFORM',
+               message: `Parameter 'change' must to be object or array, provided: ${ typeof change }`,
+               code: 'NOT_VALID_CHANGE',
             });
          };
 
-         if( ! Array.isArray( transform )){
+         if( ! Array.isArray( change )){
 
-            const emptyProp = ( ! transform.find || ! transform.replace );
+            const emptyProp = ( ! change.find || ! change.replace );
 
             if( emptyProp ){
 
                throw new ModuleError({
 
-                  message: `Transform object must contain 'find' and 'replace' properties, provided: ${ transform }`,
+                  message: `Change object must contain 'find' and 'replace' properties, provided: ${ change }`,
                   code: 'NOT_VALID_FIND_REPLACE',
                });
             };
 
-            const badType = typeof transform.find !== 'string' && ! ( transform.find instanceof RegExp ) || typeof transform.replace !== 'string';
+            const badType = typeof change.find !== 'string' && ! ( change.find instanceof RegExp ) || typeof change.replace !== 'string';
 
             if( badType ){
 
                throw new ModuleError({
 
-                  message: `Bad transform options 'find' must be string or regex and 'replace' must be a string, provided: ${ transform }`,
+                  message: `Bad change options 'find' must be string or regex and 'replace' must be a string, provided: ${ change }`,
                   code: 'NOT_VALID_FIND_REPLACE',
                });
             };
          };
 
-         if( Array.isArray( transform )){
+         if( Array.isArray( change )){
 
-            const emptyProp = ! transform.length || transform.find( v => ! v || ! v.find || ! v.replace );
+            const emptyProp = ! change.length || change.find( v => ! v || ! v.find || ! v.replace );
 
             if( emptyProp ){
 
                throw new ModuleError({
 
-                  message: `Transform array must contain objects with 'find' and 'replace' properties, provided: ${ transform.find( v => ! v.find || ! v.replace )}`,
+                  message: `Change array must contain objects with 'find' and 'replace' properties, provided: ${ change.find( v => ! v.find || ! v.replace )}`,
                   code: 'NOT_VALID_FIND_REPLACE',
                });
             };
 
-            const badType = transform.find(
+            const badType = change.find(
 
                v => typeof v.find !== 'string' && ! ( v.find instanceof RegExp ) || typeof v.replace !== 'string'
             );
@@ -518,7 +518,7 @@ function checkParams( fields, params ){
 
                throw new ModuleError({
 
-                  message: `Bad transform options 'find' must be string or regex and 'replace' must be a string, provided: ${ transform.find(
+                  message: `Bad change options 'find' must be string or regex and 'replace' must be a string, provided: ${ change.find(
 
                v => typeof v.find !== 'string' && ! ( v.find instanceof RegExp ) || typeof v.replace !== 'string'
             )}`,
@@ -533,7 +533,7 @@ function checkParams( fields, params ){
 module.exports = {
 
    copyPath,
-   contentTransform,
-   copyFileTransform,
+   contentChange,
+   copyFileChange,
    checkParams,
 };

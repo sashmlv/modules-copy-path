@@ -4,7 +4,7 @@ const test = require( 'ava' ),
    rewire = require( 'rewire' ),
    mod = rewire( './index' ),
    {
-      contentTransform,
+      contentChange,
    } = mod;
 
 mod.__set__( 'log', { // disable logger
@@ -14,32 +14,32 @@ mod.__set__( 'log', { // disable logger
 test( `params should contan 'content' parameter`, t => {
 
    const params = {};
-   const error = t.throws( _=> contentTransform( params ));
+   const error = t.throws( _=> contentChange( params ));
    t.deepEqual( error.code, 'EMPTY_CONTENT' );
 });
 
-test( `params should contan 'transform' parameter`, t => {
+test( `params should contan 'change' parameter`, t => {
 
    const params = { content: 'text tex t ext ex test es text' };
-   const error = t.throws( _=> contentTransform( params ));
-   t.deepEqual( error.code, 'EMPTY_TRANSFORM' );
+   const error = t.throws( _=> contentChange( params ));
+   t.deepEqual( error.code, 'EMPTY_CHANGE' );
 });
 
-test( `transform content`, async t => {
+test( `change content`, async t => {
 
    const params = {
 
       content: 'text abc z ext xyz test and text',
-      transform: {
+      change: {
 
          find: 'abc',
          replace: 'cba',
       },
    };
 
-   t.deepEqual( params.content,              'text abc z ext xyz test and text' );
-   t.deepEqual(  contentTransform( params ), 'text cba z ext xyz test and text' );
-   params.transform = [{
+   t.deepEqual( params.content,          'text abc z ext xyz test and text' );
+   t.deepEqual( contentChange( params ), 'text cba z ext xyz test and text' );
+   params.change = [{
 
       find: /test/g,
       replace: 'just',
@@ -48,5 +48,5 @@ test( `transform content`, async t => {
       find: 'and',
       replace: 'not',
    }];
-   t.deepEqual(  contentTransform( params ), 'text abc z ext xyz just not text' );
+   t.deepEqual( contentChange( params ), 'text abc z ext xyz just not text' );
 });

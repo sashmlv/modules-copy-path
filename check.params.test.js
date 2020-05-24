@@ -70,11 +70,11 @@ test( `'params' must to be object`, t => {
    t.deepEqual( error.code, 'NOT_VALID_PARAMS' );
 });
 
-test( `params should contan 'from' parameter`, t => {
+test( `params should contan 'src' parameter`, t => {
 
    const fields = {
 
-         from: {
+         src: {
 
             empty: true,
          }
@@ -82,14 +82,14 @@ test( `params should contan 'from' parameter`, t => {
       params = {};
 
    const error = t.throws( _=> checkParams( fields, params ));
-   t.deepEqual( error.code, 'EMPTY_FROM' );
+   t.deepEqual( error.code, 'EMPTY_SRC' );
 });
 
-test( `parameter 'from' must to be a string`, t => {
+test( `parameter 'src' must to be a string`, t => {
 
    const fields = {
 
-         from: {
+         src: {
 
             empty: true,
             type: true,
@@ -97,36 +97,36 @@ test( `parameter 'from' must to be a string`, t => {
       },
       params = {
 
-         from: [ 'data' ],
+         src: [ 'data' ],
       };
 
    const error = t.throws( _=> checkParams( fields, params ));
-   t.deepEqual( error.code, 'NOT_VALID_FROM' );
+   t.deepEqual( error.code, 'NOT_VALID_SRC' );
 });
 
-test( `params should contan 'to' parameter`, t => {
+test( `params should contan 'dest' parameter`, t => {
 
    const fields = {
 
-         to: {
+         dest: {
 
             empty: true,
          }
       },
       params = {
 
-         from: '/tmp',
+         src: '/tmp',
       };
 
    const error = t.throws( _=> checkParams( fields, params ));
-   t.deepEqual( error.code, 'EMPTY_TO' );
+   t.deepEqual( error.code, 'EMPTY_DEST' );
 });
 
-test( `parameter 'to' must to be a string`, t => {
+test( `parameter 'dest' must to be a string`, t => {
 
    const fields = {
 
-         to: {
+         dest: {
 
             empty: true,
             type: true,
@@ -134,12 +134,12 @@ test( `parameter 'to' must to be a string`, t => {
       },
       params = {
 
-         from: 'data',
-         to: [ 'data' ],
+         src: 'data',
+         dest: [ 'data' ],
       };
 
    const error = t.throws( _=> checkParams( fields, params ));
-   t.deepEqual( error.code, 'NOT_VALID_TO' );
+   t.deepEqual( error.code, 'NOT_VALID_DEST' );
 });
 
 test( `params should contan 'content' parameter`, t => {
@@ -176,7 +176,7 @@ test( `parameter 'content' must to be a string`, t => {
    t.deepEqual( error.code, 'NOT_VALID_CONTENT' );
 });
 
-test( `params should contan 'transform' parameter`, t => {
+test( `params should contan 'change' parameter`, t => {
 
    const fields = {
 
@@ -185,7 +185,7 @@ test( `params should contan 'transform' parameter`, t => {
             empty: true,
             type: true,
          },
-         transform: {
+         change: {
 
             empty: true,
          },
@@ -196,14 +196,14 @@ test( `params should contan 'transform' parameter`, t => {
       };
 
    const error = t.throws( _=> checkParams( fields, params ));
-   t.deepEqual( error.code, 'EMPTY_TRANSFORM' );
+   t.deepEqual( error.code, 'EMPTY_CHANGE' );
 });
 
-test( `parameter 'transform' must to be a object or array`, t => {
+test( `parameter 'change' must to be a object or array`, t => {
 
    const fields = {
 
-         transform: {
+         change: {
 
             empty: true,
             type: true,
@@ -211,43 +211,43 @@ test( `parameter 'transform' must to be a object or array`, t => {
       },
       params = {
 
-         transform: 1
+         change: 1
       };
 
    const error = t.throws( _=> checkParams( fields, params ));
-   t.deepEqual( error.code, 'NOT_VALID_TRANSFORM' );
+   t.deepEqual( error.code, 'NOT_VALID_CHANGE' );
 });
 
-test( `'transform' object must contain 'find' and 'replace' properties`, t => {
+test( `'change' object must contain 'find' and 'replace' properties`, t => {
 
    const fields = {
 
-         transform: {
+         change: {
 
             type: true,
          },
       },
       params = {
 
-         transform: {}
+         change: {}
       };
 
    const error = t.throws( _=> checkParams( fields, params ));
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 });
 
-test( `'transform' object parameters type`, t => {
+test( `'change' object parameters type`, t => {
 
    const fields = {
 
-         transform: {
+         change: {
 
             type: true,
          },
       },
       params = {
 
-         transform: {
+         change: {
 
             find: 1,
             replace: 'text',
@@ -257,50 +257,50 @@ test( `'transform' object parameters type`, t => {
    let error = t.throws( _=> checkParams( fields, params ));
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 
-   params.transform.find = 'test';
-   params.transform.replace = 1;
+   params.change.find = 'test';
+   params.change.replace = 1;
 
    error = t.throws( _=> checkParams( fields, params ));
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 
-   params.transform.find = 'test';
-   params.transform.replace = 'test';
+   params.change.find = 'test';
+   params.change.replace = 'test';
    t.notThrows( _=> checkParams( fields, params ));
 
-   params.transform.find = new RegExp();
+   params.change.find = new RegExp();
    t.notThrows( _=> checkParams( fields, params ));
 });
 
-test( `'transform' array must contain objects with 'find' and 'replace' properties`, t => {
+test( `'change' array must contain objects with 'find' and 'replace' properties`, t => {
 
    const fields = {
 
-         transform: {
+         change: {
 
             type: true,
          },
       },
       params = {
 
-         transform: [],
+         change: [],
       };
 
    const error = t.throws( _=> checkParams( fields, params ));
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 });
 
-test( `'transform' array parameters type`, t => {
+test( `'change' array parameters type`, t => {
 
    const fields = {
 
-         transform: {
+         change: {
 
             type: true,
          },
       },
       params = {
 
-         transform: [{
+         change: [{
 
             find: 1,
             replace: 'text',
@@ -310,16 +310,16 @@ test( `'transform' array parameters type`, t => {
    let error = t.throws( _=> checkParams( fields, params ));
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 
-   params.transform[ 0 ].find = 'test';
-   params.transform[ 0 ].replace = 1;
+   params.change[ 0 ].find = 'test';
+   params.change[ 0 ].replace = 1;
 
    error = t.throws( _=> checkParams( fields, params ));
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 
-   params.transform[ 0 ].find = 'test';
-   params.transform[ 0 ].replace = 'test';
+   params.change[ 0 ].find = 'test';
+   params.change[ 0 ].replace = 'test';
    t.notThrows( _=> checkParams( fields, params ));
 
-   params.transform[ 0 ].find = new RegExp();
+   params.change[ 0 ].find = new RegExp();
    t.notThrows( _=> checkParams( fields, params ));
 });
