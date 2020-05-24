@@ -49,4 +49,7 @@ test( `change content`, async t => {
       replace: 'not',
    }];
    t.deepEqual( contentChange( params ), 'text abc z ext xyz just not text' );
+
+   params.change = content => content.replace( 'text', 'test' );
+   t.deepEqual( contentChange( params ), 'test abc z ext xyz test and text' );
 });

@@ -21,9 +21,9 @@ const fs = require( 'fs' ),
  * @param {string} params.dest
  * @param {regex|array|function} params.filter - filter for copying paths
  * @param {boolean} params.force - overwrite files
- * @param {object|array} params.change
- * @param {string|regex} params.change.find
- * @param {string} params.change.replace
+ * @param {object|array|function} params.change
+ * @param {string|regex} params.change.find - only for parameter 'change' type object
+ * @param {string} params.change.replace - only for parameter 'change' type object
  * @param {boolean} params.logging - copying log
  * @return {undefined} Return removed paths
  **/
@@ -244,9 +244,9 @@ async function copyPath( params = {}){
  * Content change
  * @param {object} params
  * @param {string} params.content
- * @param {object|array} params.change
- * @param {string|regex} params.change.find
- * @param {string} params.change.replace
+ * @param {object|array|function} params.change
+ * @param {string|regex} params.change.find - only for parameter 'change' type object
+ * @param {string} params.change.replace - only for parameter 'change' type object
  * @return {string} Return changed content string
  **/
 function contentChange( params ){
@@ -267,13 +267,13 @@ function contentChange( params ){
       let result;
 
       /* replace */
-      if( ! Array.isArray( change )){
+      if( getClass( change ) === 'object' ){
 
          const { find, replace } = change;
 
          result = content.replace( find, replace );
       }
-      else {
+      else if( Array.isArray( change )){
 
          result = content;
 
@@ -284,10 +284,14 @@ function contentChange( params ){
             result = result.replace( find, replace );
          }
       }
+      else if( typeof change === 'function' ){
+
+         result = change( content );
+      };
 
       return result;
    }
-   catch ( e ) {
+   catch( e ) {
 
       log.red( e );
 
@@ -300,9 +304,9 @@ function contentChange( params ){
  * @param {object} params
  * @param {string} params.src
  * @param {string} params.dest
- * @param {object|array} params.change
- * @param {string|regex} params.change.find
- * @param {string} params.change.replace
+ * @param {object|array|function} params.change
+ * @param {string|regex} params.change.find - only for parameter 'change' type object
+ * @param {string} params.change.replace - only for parameter 'change' type object
  * @param {string} params.encoding
  * @param {boolean} params.logging - copying log
  * @return {undefined}
@@ -462,7 +466,7 @@ function checkParams( fields, params ){
 
       if( fields.change.type && change ){
 
-         if( typeof change !== 'object' ){
+         if( typeof change !== 'object' &&  typeof change !== 'function' ){
 
             throw new ModuleError({
 
@@ -471,7 +475,7 @@ function checkParams( fields, params ){
             });
          };
 
-         if( ! Array.isArray( change )){
+         if( getClass( change ) === 'object' ){
 
             const emptyProp = ( ! change.find || ! change.replace );
 

@@ -199,7 +199,7 @@ test( `params should contan 'change' parameter`, t => {
    t.deepEqual( error.code, 'EMPTY_CHANGE' );
 });
 
-test( `parameter 'change' must to be a object or array`, t => {
+test( `parameter 'change' must to be either object, array or function`, t => {
 
    const fields = {
 
@@ -214,8 +214,22 @@ test( `parameter 'change' must to be a object or array`, t => {
          change: 1
       };
 
-   const error = t.throws( _=> checkParams( fields, params ));
+   let error = t.throws( _=> checkParams( fields, params ));
    t.deepEqual( error.code, 'NOT_VALID_CHANGE' );
+
+   params.change = {};
+
+   error = t.throws( _=> checkParams( fields, params ));
+   t.not( error.code, 'NOT_VALID_CHANGE' );
+
+   params.change = [];
+
+   error = t.throws( _=> checkParams( fields, params ));
+   t.not( error.code, 'NOT_VALID_CHANGE' );
+
+   params.change = _=>_;
+
+   t.notThrows( _=> checkParams( fields, params ));
 });
 
 test( `'change' object must contain 'find' and 'replace' properties`, t => {
@@ -236,7 +250,7 @@ test( `'change' object must contain 'find' and 'replace' properties`, t => {
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 });
 
-test( `'change' object parameters type`, t => {
+test( `check parameters type of 'change' object`, t => {
 
    const fields = {
 
@@ -289,7 +303,7 @@ test( `'change' array must contain objects with 'find' and 'replace' properties`
    t.deepEqual( error.code, 'NOT_VALID_FIND_REPLACE' );
 });
 
-test( `'change' array parameters type`, t => {
+test( `check parameters type of 'change' array`, t => {
 
    const fields = {
 
