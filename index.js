@@ -24,10 +24,11 @@ const fs = require( 'fs' ),
  * @param {object|array|function} params.change
  * @param {string|regex} params.change.find - only for parameter 'change' type object
  * @param {string} params.change.replace - only for parameter 'change' type object
- * @param {boolean} params.logging - copying log
+ * @param {object} opts
+ * @param {boolean} opts.logging - copying log
  * @return {undefined} Return removed paths
  **/
-async function copyPath( params = {}){
+async function copyPath( params = {}, opts = {}){
 
    try {
 
@@ -41,7 +42,8 @@ async function copyPath( params = {}){
          params,
       );
 
-      const { src, dest, filter, force, change, logging, } = params;
+      const { src, dest, filter, force, change, } = params,
+         { logging, } = opts;
 
       switch( true ){
 
@@ -113,7 +115,7 @@ async function copyPath( params = {}){
 
             await unlink( dest );
             logging && log.blue( `unlink ${ dest }` );
-            await copyFileChange({ src, dest, change, logging, });
+            await copyFileChange({ src, dest, change, }, { logging, });
 
             break;
 
@@ -126,7 +128,7 @@ async function copyPath( params = {}){
                throw new ModuleError({ message: `Destination already exists: ${ destPath }`, code: 'DEST_EXISTS', });
             };
 
-            await copyFileChange({ src, dest: destPath, change, logging, });
+            await copyFileChange({ src, dest: destPath, change, }, { logging, });
 
             break;
          };
@@ -151,7 +153,7 @@ async function copyPath( params = {}){
                };
             };
 
-            await copyFileChange({ src, dest: destPath, change, logging, });
+            await copyFileChange({ src, dest: destPath, change, }, { logging, });
 
             break;
          };
@@ -167,7 +169,7 @@ async function copyPath( params = {}){
             const destPath = path.resolve( `${ dest }/${ path.basename( src )}` );
             await mkdir( dest, { recursive: true });
             logging && log.blue( `mkdir ${ dest }` );
-            await copyFileChange({ src, dest: destPath, change, logging, });
+            await copyFileChange({ src, dest: destPath, change, }, { logging, });
 
             break;
          };
@@ -308,10 +310,11 @@ function contentChange( params ){
  * @param {string|regex} params.change.find - only for parameter 'change' type object
  * @param {string} params.change.replace - only for parameter 'change' type object
  * @param {string} params.encoding
- * @param {boolean} params.logging - copying log
+ * @param {object} opts
+ * @param {boolean} opts.logging - copying log
  * @return {undefined}
  **/
-async function copyFileChange( params ){
+async function copyFileChange( params, opts = {}){
 
    checkParams({
 
@@ -329,8 +332,10 @@ async function copyFileChange( params ){
       dest,
       change,
       encoding = 'utf8',
+   } = params, {
+
       logging,
-   } = params;
+   } = opts;
 
    if( change ) {
 
