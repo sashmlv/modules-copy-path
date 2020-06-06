@@ -3,8 +3,9 @@
 const fs = require( 'fs' ),
    util = require( 'util' ),
    path = require( 'path' ),
-   { log, exists, getClass } = require( 'maintenance' ),
-   ModuleError = require( 'module-error' ),
+   { getClass, exists } = require( 'snippets' ),
+   { log } = require( 'maintenance' ),
+   { ModuleError } = require( 'module-error' ),
    copyFile  = util.promisify( fs.copyFile ),
    unlink    = util.promisify( fs.unlink ),
    rmdir     = util.promisify( fs.rmdir ),
@@ -16,6 +17,7 @@ const fs = require( 'fs' ),
 
 /**
  * Copy path
+ * TODO: configurable logger
  * @param {object} params
  * @param {string} params.src
  * @param {string} params.dest

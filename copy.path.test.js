@@ -7,7 +7,7 @@ const path = require( 'path' ),
    test = require( 'ava' ),
    sinon = require( 'sinon' ),
    rewire = require( 'rewire' ),
-   { exists } = require( 'maintenance' ),
+   { exists } = require( 'snippets' ),
    mod = rewire( './index' ),
    {
       copyPath,

@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "maintenance": "git+https://github.com/sashmlv/modules-maintenance.git",
-    "module-error": "git+https://github.com/sashmlv/modules-module-error.git"
+    "module-error": "git+https://github.com/sashmlv/modules-module-error.git",
+    "snippets": "git+https://github.com/sashmlv/modules-snippets.git"
   }
 }
