@@ -647,3 +647,85 @@ test( `copy file whith content change`, async t => {
    t.deepEqual( shell.cat( destFile ).stdout, 'file_1 just content' );
    t.deepEqual( copyFileChange.callCount, 1 );
 });
+
+test( `before copy file hook`, async t => {
+
+   const src = `tmp/test-src/file_1`,
+      dest = `tmp/test-dest`,
+      destFile = `tmp/test-dest/file_1`;
+
+   let params = {
+
+      src,
+      dest,
+      beforeCopy: 1,
+   };
+
+   const error = await t.throwsAsync( copyPath( params ));
+
+   t.deepEqual( error.code, 'NOT_VALID_BEFORE_COPY' );
+
+   params = {
+
+      src,
+      dest,
+      beforeCopy: sinon.spy(( s, d ) => {
+
+         fs.writeFileSync( s, 'file_1 secret content', 'utf8' );
+      }),
+   };
+
+   shell.touch( src );
+   shell.ShellString( 'file_1 some content').to( src );
+
+   t.deepEqual( await exists( src ), true );
+   t.deepEqual( await exists( dest ), true );
+   t.deepEqual( await exists( destFile ), false );
+   t.deepEqual( shell.cat( src ).stdout, 'file_1 some content' );
+
+   await copyPath( params );
+
+   t.deepEqual( shell.cat( destFile ).stdout, 'file_1 secret content' );
+   t.deepEqual( params.beforeCopy.callCount, 1 );
+});
+
+test( `after copy file hook`, async t => {
+
+   const src = `tmp/test-src/file_1`,
+      dest = `tmp/test-dest`,
+      destFile = `tmp/test-dest/file_1`;
+
+   let params = {
+
+      src,
+      dest,
+      afterCopy: 1,
+   };
+
+   const error = await t.throwsAsync( copyPath( params ));
+
+   t.deepEqual( error.code, 'NOT_VALID_AFTER_COPY' );
+
+   params = {
+
+      src,
+      dest,
+      afterCopy: sinon.spy(( s, d ) => {
+
+         fs.writeFileSync( destFile, 'file_1 secret content', 'utf8' );
+      }),
+   };
+
+   shell.touch( src );
+   shell.ShellString( 'file_1 some content').to( src );
+
+   t.deepEqual( await exists( src ), true );
+   t.deepEqual( await exists( dest ), true );
+   t.deepEqual( await exists( destFile ), false );
+   t.deepEqual( shell.cat( src ).stdout, 'file_1 some content' );
+
+   await copyPath( params );
+
+   t.deepEqual( shell.cat( destFile ).stdout, 'file_1 secret content' );
+   t.deepEqual( params.afterCopy.callCount, 1 );
+});

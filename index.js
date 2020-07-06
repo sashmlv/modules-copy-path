@@ -23,9 +23,11 @@ const fs = require( 'fs' ),
  * @param {string} params.dest
  * @param {regex|array|function} params.filter - filter for copying paths
  * @param {boolean} params.force - overwrite files
- * @param {object|array|function} params.change
- * @param {string|regex} params.change.find - only for parameter 'change' type object
- * @param {string} params.change.replace - only for parameter 'change' type object
+ * @param {object|array|function} params.change - change file
+ * @param {string|regex} params.change.find - sought
+ * @param {string} params.change.replace - replacer
+ * @param {function} params.beforeCopy - before copy callback with source and dest parameters
+ * @param {function} params.afterCopy - after copy callback with source and dest parameters
  * @param {object} opts
  * @param {boolean} opts.logging - copying log
  * @return {undefined} Return removed paths
@@ -39,12 +41,14 @@ async function copyPath( params = {}, opts = {}){
          src: { empty: 1, type: 1, },
          dest: { empty: 1, type: 1, },
          change: { empty: 0, type: 1, },
+         beforeCopy: { empty: 0, type: 1, },
+         afterCopy: { empty: 0, type: 1, },
       },
 
          params,
       );
 
-      const { src, dest, filter, force, change, } = params,
+      const { src, dest, filter, force, change, beforeCopy, afterCopy, } = params,
          { logging, } = opts;
 
       switch( true ){
@@ -117,7 +121,7 @@ async function copyPath( params = {}, opts = {}){
 
             await unlink( dest );
             logging && log.blue( `unlink ${ dest }` );
-            await copyFileChange({ src, dest, change, }, { logging, });
+            await copyFileChange({ src, dest, change, beforeCopy, afterCopy, }, { logging, });
 
             break;
 
@@ -130,7 +134,7 @@ async function copyPath( params = {}, opts = {}){
                throw new ModuleError({ message: `Destination already exists: ${ destPath }`, code: 'DEST_EXISTS', });
             };
 
-            await copyFileChange({ src, dest: destPath, change, }, { logging, });
+            await copyFileChange({ src, dest: destPath, change, beforeCopy, afterCopy, }, { logging, });
 
             break;
          };
@@ -155,14 +159,14 @@ async function copyPath( params = {}, opts = {}){
                };
             };
 
-            await copyFileChange({ src, dest: destPath, change, }, { logging, });
+            await copyFileChange({ src, dest: destPath, change, beforeCopy, afterCopy, }, { logging, });
 
             break;
          };
 
          case srcIsFile && ! destExists && ! destHasLastSlash:
 
-            await copyFileChange({ src, dest, change, logging, });
+            await copyFileChange({ src, dest, change, beforeCopy, afterCopy, }, { logging });
 
             break;
 
@@ -171,7 +175,7 @@ async function copyPath( params = {}, opts = {}){
             const destPath = path.resolve( `${ dest }/${ path.basename( src )}` );
             await mkdir( dest, { recursive: true });
             logging && log.blue( `mkdir ${ dest }` );
-            await copyFileChange({ src, dest: destPath, change, }, { logging, });
+            await copyFileChange({ src, dest: destPath, change, beforeCopy, afterCopy, }, { logging, });
 
             break;
          };
@@ -247,10 +251,10 @@ async function copyPath( params = {}, opts = {}){
 /**
  * Content change
  * @param {object} params
- * @param {string} params.content
+ * @param {string} params.content - target content
  * @param {object|array|function} params.change
- * @param {string|regex} params.change.find - only for parameter 'change' type object
- * @param {string} params.change.replace - only for parameter 'change' type object
+ * @param {string|regex} params.change.find - sought
+ * @param {string} params.change.replace - replacer
  * @return {string} Return changed content string
  **/
 function contentChange( params ){
@@ -308,10 +312,12 @@ function contentChange( params ){
  * @param {object} params
  * @param {string} params.src
  * @param {string} params.dest
- * @param {object|array|function} params.change
- * @param {string|regex} params.change.find - only for parameter 'change' type object
- * @param {string} params.change.replace - only for parameter 'change' type object
+ * @param {object|array|function} params.change - change file
+ * @param {string|regex} params.change.find - sought
+ * @param {string} params.change.replace - replacer
  * @param {string} params.encoding
+ * @param {function} params.beforeCopy - before copy callback with source and dest parameters
+ * @param {function} params.afterCopy - after copy callback with source and dest parameters
  * @param {object} opts
  * @param {boolean} opts.logging - copying log
  * @return {undefined}
@@ -323,6 +329,8 @@ async function copyFileChange( params, opts = {}){
       src: { empty: 1, type: 1, },
       dest: { empty: 1, type: 1, },
       change: { empty: 0, type: 1, },
+      beforeCopy: { empty: 0, type: 1, },
+      afterCopy: { empty: 0, type: 1, },
    },
 
       params
@@ -330,14 +338,22 @@ async function copyFileChange( params, opts = {}){
 
    const {
 
-      src,
-      dest,
       change,
       encoding = 'utf8',
+      beforeCopy,
+      afterCopy,
    } = params, {
 
       logging,
-   } = opts;
+   } = opts,
+
+      src = path.resolve( params.src ),
+      dest = path.resolve( params.dest );
+
+   if( beforeCopy ){
+
+      await beforeCopy( src, dest );
+   }
 
    if( change ) {
 
@@ -349,6 +365,11 @@ async function copyFileChange( params, opts = {}){
 
       await copyFile( src, dest );
    };
+
+   if( afterCopy ){
+
+      await afterCopy( src, dest );
+   }
 
    logging && log.blue( `copy src: ${ src }, dest: ${ dest }` );
 };
@@ -411,7 +432,7 @@ function checkParams( fields, params ){
       });
    };
 
-   const { change, src, dest, content, } = params;
+   const { change, src, dest, content, beforeCopy, afterCopy, } = params;
 
    if( fields.src ){
 
@@ -537,6 +558,22 @@ function checkParams( fields, params ){
                });
             };
          };
+      };
+   };
+
+   if( fields.beforeCopy ){
+
+      if( fields.beforeCopy.type && beforeCopy && ( typeof beforeCopy !== 'function' )){
+
+         throw new ModuleError({ message: `Parameter 'beforeCopy' must to be a function, provided: ${ typeof beforeCopy }`, code: 'NOT_VALID_BEFORE_COPY', });
+      };
+   };
+
+   if( fields.afterCopy ){
+
+      if( fields.afterCopy.type && afterCopy && ( typeof afterCopy !== 'function' )){
+
+         throw new ModuleError({ message: `Parameter 'afterCopy' must to be a function, provided: ${ typeof afterCopy }`, code: 'NOT_VALID_AFTER_COPY', });
       };
    };
 };
